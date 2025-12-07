@@ -29,26 +29,27 @@ namespace QuanLySinhVien
         // --- HÀM PHÂN QUYỀN (LOGIC QUAN TRỌNG NHẤT) ---
         void PhanQuyen()
         {
-            string quyen = loginAccount.Quyen;
-            
+            // Code "Bất Tử": Trim() xóa khoảng trắng, ToLower() chuyển về chữ thường
+            string quyen = loginAccount.Quyen.Trim().ToLower();
+
 
             // Hiển thị lời chào trên tiêu đề (Nếu muốn)
             lblTitle.Text = "Xin chào: " + loginAccount.TenDangNhap;
 
             // 1. Nếu là ADMIN: Thấy hết (Không cần ẩn gì)
-            if (quyen == "Admin")
+            if (quyen == "admin")
             {
                 // Full quyền
             }
             // 2. Nếu là GIẢNG VIÊN
-            else if (quyen == "GiangVien")
+            else if (quyen == "giangvien")
             {
-                // Giảng viên không được vào quản lý Tài khoản (nếu có nút btnTaiKhoan)
+                // Giảng viên không được vào quản lý Tài khoản (nếu có nút btnTaiKhoan) -> Tùy bạn chọn ẩn hay hiện
                 // Giảng viên không được đóng tiền (ẩn nút Học Phí)
                 btnHocPhi.Visible = false;
             }
             // 3. Nếu là SINH VIÊN
-            else if (quyen == "SinhVien")
+            else if (quyen == "sinhvien")
             {
                 // Sinh viên bị hạn chế, ẩn các nút quản lý
                 btnSinhVien.Visible = false;  // Không được sửa DS Sinh viên
@@ -60,6 +61,7 @@ namespace QuanLySinhVien
                 // - btnDiem (Xem điểm)
                 // - btnHocPhi (Xem công nợ)
                 // - btnSystem (Trang chủ)
+                // - btnTaiKhoan (Đổi mật khẩu)
             }
         }
 
@@ -167,6 +169,16 @@ namespace QuanLySinhVien
             if (activeForm != null) activeForm.Close();
             OpenChildForm(new FrmDashboard(), sender);
             lblTitle.Text = "TRANG CHỦ";
+        }
+
+        // --- [MỚI] SỰ KIỆN NÚT TÀI KHOẢN (ĐỔI MẬT KHẨU) ---
+        // Bạn cần tạo nút tên btnTaiKhoan trong giao diện thiết kế và gán sự kiện click vào hàm này
+        private void btnTaiKhoan_Click(object sender, EventArgs e)
+        {
+            // Mở form đổi mật khẩu dạng Dialog (Cửa sổ nổi lên trên)
+            // Truyền loginAccount vào để biết đang đổi mật khẩu cho ai
+            fChangePassword f = new fChangePassword(loginAccount);
+            f.ShowDialog();
         }
     }
 }

@@ -18,13 +18,12 @@ namespace QuanLySinhVien.DAO
 
         private DataProvider() { }
 
-        // CHUỖI KẾT NỐI (Quan trọng nhất)
-        // Cách lấy: Vào SQL Server -> Connect -> Copy dòng Server Name.
-        // Nếu dùng User/Pass của SQL: "Data Source=TEN_SERVER;Initial Catalog=QuanLySinhVien;User ID=sa;Password=yourPass"
-        // Nếu dùng Windows Auth: "Data Source=TEN_SERVER;Initial Catalog=QuanLySinhVien;Integrated Security=True"
-        private string connectionSTR = @"Data Source=.\SQLEXPRESS;Initial Catalog=QuanLySinhVien;Integrated Security=True";
+        // CHUỖI KẾT NỐI
+        // Lưu ý: Nếu máy bạn tên khác, hãy sửa lại đoạn "Data Source=..." cho phù hợp
+        // Lưu ý: Phải có dấu @ ở đầu để C# hiểu dấu gạch chéo \
+        private string connectionSTR = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=QuanLySinhVien;Integrated Security=True";
 
-        // Hàm chạy câu lệnh SELECT (Lấy dữ liệu ra dạng bảng)
+        // 1. Hàm chạy câu lệnh SELECT (Lấy dữ liệu ra dạng bảng)
         public DataTable ExecuteQuery(string query, object[] parameter = null)
         {
             DataTable data = new DataTable();
@@ -53,7 +52,7 @@ namespace QuanLySinhVien.DAO
             return data;
         }
 
-        // Hàm chạy câu lệnh INSERT, UPDATE, DELETE (Trả về số dòng thành công)
+        // 2. Hàm chạy câu lệnh INSERT, UPDATE, DELETE (Trả về số dòng thành công)
         public int ExecuteNonQuery(string query, object[] parameter = null)
         {
             int data = 0;
@@ -80,5 +79,35 @@ namespace QuanLySinhVien.DAO
             }
             return data;
         }
+
+        // 3. [MỚI] Hàm lấy 1 giá trị duy nhất (Dùng cho COUNT, SUM...)
+        // Đây là hàm bạn đang thiếu để chạy ThongKeDAO
+        public object ExecuteScalar(string query, object[] parameter = null)
+        {
+            object data = 0;
+            using (SqlConnection connection = new SqlConnection(connectionSTR))
+            {
+                connection.Open();
+                SqlCommand command = new SqlCommand(query, connection);
+
+                if (parameter != null)
+                {
+                    string[] listPara = query.Split(' ');
+                    int i = 0;
+                    foreach (string item in listPara)
+                    {
+                        if (item.Contains('@'))
+                        {
+                            command.Parameters.AddWithValue(item, parameter[i]);
+                            i++;
+                        }
+                    }
+                }
+                // ExecuteScalar trả về ô đầu tiên của dòng đầu tiên
+                data = command.ExecuteScalar();
+                connection.Close();
+            }
+            return data;
+        }
     }
-}   
+}

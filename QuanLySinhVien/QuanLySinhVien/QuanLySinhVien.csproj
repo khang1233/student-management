@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -47,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DAO\AccountDAO.cs" />
+    <Compile Include="DAO\Database.cs" />
     <Compile Include="DAO\DataProvider.cs" />
     <Compile Include="DAO\GiangVienDAO.cs" />
     <Compile Include="DAO\HocPhiDAO.cs" />
@@ -56,9 +58,16 @@
     <Compile Include="DAO\SinhVienDAO.cs" />
     <Compile Include="DAO\ThongKeDAO.cs" />
     <Compile Include="DTO\Account.cs" />
+    <Compile Include="DTO\AppSession.cs" />
     <Compile Include="DTO\KetQua.cs" />
     <Compile Include="DTO\MonHoc.cs" />
     <Compile Include="DTO\SinhVien.cs" />
+    <Compile Include="fChangePassword.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="fChangePassword.Designer.cs">
+      <DependentUpon>fChangePassword.cs</DependentUpon>
+    </Compile>
     <Compile Include="fMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -124,6 +133,12 @@
     </Compile>
     <Compile Include="FrmThemSinhVien.Designer.cs">
       <DependentUpon>FrmThemSinhVien.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PhanQuyen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PhanQuyen.Designer.cs">
+      <DependentUpon>PhanQuyen.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

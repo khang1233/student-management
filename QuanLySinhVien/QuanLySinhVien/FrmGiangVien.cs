@@ -6,99 +6,134 @@ namespace QuanLySinhVien
 {
     public partial class FrmGiangVien : Form
     {
+        // Sử dụng BindingSource để liên kết dữ liệu
+        BindingSource listGiangVien = new BindingSource();
+
         public FrmGiangVien()
         {
             InitializeComponent();
+
+            // Gán nguồn dữ liệu
+            dgvGiangVien.DataSource = listGiangVien;
+
             LoadListGiangVien();
+            AddGiangVienBinding();
         }
 
         void LoadListGiangVien()
         {
-            dgvGiangVien.DataSource = GiangVienDAO.Instance.GetListGiangVien();
-            // Đặt tên tiêu đề cột
-            dgvGiangVien.Columns["MaGV"].HeaderText = "Mã GV";
-            dgvGiangVien.Columns["HoTen"].HeaderText = "Họ Tên";
-            dgvGiangVien.Columns["SoDienThoai"].HeaderText = "SĐT";
-            dgvGiangVien.Columns["Email"].HeaderText = "Email";
-            dgvGiangVien.Columns["MaKhoa"].HeaderText = "Mã Khoa";
-        }
+            listGiangVien.DataSource = GiangVienDAO.Instance.GetListGiangVien();
 
-        // Click vào dòng để hiện thông tin lên TextBox
-        private void dgvGiangVien_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex >= 0)
+            // Định dạng tiêu đề cột
+            if (dgvGiangVien.Columns["MaGV"] != null)
             {
-                DataGridViewRow row = dgvGiangVien.Rows[e.RowIndex];
-                txbMaGV.Text = row.Cells["MaGV"].Value.ToString();
-                txbHoTen.Text = row.Cells["HoTen"].Value.ToString();
-                txbSDT.Text = row.Cells["SoDienThoai"].Value.ToString();
-                txbEmail.Text = row.Cells["Email"].Value.ToString();
-                txbMaKhoa.Text = row.Cells["MaKhoa"].Value.ToString();
+                dgvGiangVien.Columns["MaGV"].HeaderText = "Mã GV";
+                dgvGiangVien.Columns["HoTen"].HeaderText = "Họ Tên";
+                dgvGiangVien.Columns["GioiTinh"].HeaderText = "Giới Tính";
+                dgvGiangVien.Columns["SoDienThoai"].HeaderText = "SĐT";
+                dgvGiangVien.Columns["Email"].HeaderText = "Email";
+                dgvGiangVien.Columns["DiaChi"].HeaderText = "Địa Chỉ";
             }
         }
 
-        // Nút Thêm
+        void AddGiangVienBinding()
+        {
+            // Xóa binding cũ
+            txbMaGV.DataBindings.Clear();
+            txbHoTen.DataBindings.Clear();
+            cbGioiTinh.DataBindings.Clear();
+            txbSDT.DataBindings.Clear();
+            txbEmail.DataBindings.Clear();
+            txbDiaChi.DataBindings.Clear();
+
+            // Liên kết dữ liệu
+            txbMaGV.DataBindings.Add("Text", dgvGiangVien.DataSource, "MaGV", true, DataSourceUpdateMode.Never);
+            txbHoTen.DataBindings.Add("Text", dgvGiangVien.DataSource, "HoTen", true, DataSourceUpdateMode.Never);
+            cbGioiTinh.DataBindings.Add("Text", dgvGiangVien.DataSource, "GioiTinh", true, DataSourceUpdateMode.Never);
+            txbSDT.DataBindings.Add("Text", dgvGiangVien.DataSource, "SoDienThoai", true, DataSourceUpdateMode.Never);
+            txbEmail.DataBindings.Add("Text", dgvGiangVien.DataSource, "Email", true, DataSourceUpdateMode.Never);
+            txbDiaChi.DataBindings.Add("Text", dgvGiangVien.DataSource, "DiaChi", true, DataSourceUpdateMode.Never);
+        }
+
+        // [QUAN TRỌNG] ĐÂY LÀ HÀM BẠN ĐANG THIẾU
+        // Hàm này xử lý sự kiện click vào bảng. 
+        // Do dùng BindingSource nên nó tự nhảy dữ liệu, hàm này để trống cũng được, nhưng PHẢI CÓ để không báo lỗi.
+        private void dgvGiangVien_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // Có thể để trống hoặc xử lý thêm nếu muốn
+        }
+
+        // Nút THÊM
         private void btnThem_Click(object sender, EventArgs e)
         {
-            // 1. Kiểm tra dữ liệu rỗng
-            if (txbMaGV.Text == "" || txbHoTen.Text == "" || txbMaKhoa.Text == "")
+            string ma = txbMaGV.Text;
+            string ten = txbHoTen.Text;
+            string gt = cbGioiTinh.Text;
+            string sdt = txbSDT.Text;
+            string email = txbEmail.Text;
+            string dc = txbDiaChi.Text;
+
+            if (ma == "" || ten == "")
             {
-                MessageBox.Show("Vui lòng nhập đầy đủ thông tin!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Vui lòng nhập Mã và Tên giảng viên!", "Cảnh báo");
                 return;
             }
 
-            // 2. KIỂM TRA MÃ KHOA CÓ TỒN TẠI KHÔNG? (Đây là phần bạn cần)
-            if (GiangVienDAO.Instance.CheckKhoaTonTai(txbMaKhoa.Text) == false)
-            {
-                MessageBox.Show("Mã Khoa '" + txbMaKhoa.Text + "' không tồn tại trong hệ thống!\nVui lòng nhập mã khác (Ví dụ: CNTT, KT...).",
-                                "Lỗi nhập liệu", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                txbMaKhoa.Focus(); // Đưa con trỏ chuột quay lại ô Mã Khoa để nhập lại
-                return; // Dừng lại, không chạy lệnh Insert bên dưới nữa
-            }
-
-            // 3. Nếu Mã Khoa đúng rồi thì mới thêm
             try
             {
-                if (GiangVienDAO.Instance.InsertGiangVien(txbMaGV.Text, txbHoTen.Text, txbSDT.Text, txbEmail.Text, txbMaKhoa.Text))
+                if (GiangVienDAO.Instance.InsertGiangVien(ma, ten, gt, sdt, email, dc))
                 {
-                    MessageBox.Show("Thêm giảng viên thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Thêm thành công!");
                     LoadListGiangVien();
                 }
                 else
                 {
-                    MessageBox.Show("Thêm thất bại! Có thể trùng Mã Giảng Viên.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Thêm thất bại (Có thể trùng Mã GV)!");
                 }
             }
             catch (Exception ex)
             {
-                // Bắt các lỗi khác nếu có
-                MessageBox.Show("Có lỗi hệ thống: " + ex.Message);
+                MessageBox.Show("Lỗi: " + ex.Message);
             }
         }
 
-        // Nút Sửa
+        // Nút SỬA
         private void btnSua_Click(object sender, EventArgs e)
         {
-            if (GiangVienDAO.Instance.UpdateGiangVien(txbMaGV.Text, txbHoTen.Text, txbSDT.Text, txbEmail.Text, txbMaKhoa.Text))
+            string ma = txbMaGV.Text;
+            string ten = txbHoTen.Text;
+            string gt = cbGioiTinh.Text;
+            string sdt = txbSDT.Text;
+            string email = txbEmail.Text;
+            string dc = txbDiaChi.Text;
+
+            if (GiangVienDAO.Instance.UpdateGiangVien(ma, ten, gt, sdt, email, dc))
             {
                 MessageBox.Show("Cập nhật thành công!");
                 LoadListGiangVien();
             }
-            else MessageBox.Show("Có lỗi xảy ra!");
+            else
+            {
+                MessageBox.Show("Cập nhật thất bại!");
+            }
         }
 
-        // Nút Xóa
+        // Nút XÓA
         private void btnXoa_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Bạn có chắc muốn xóa GV " + txbHoTen.Text + "?", "Thông báo", MessageBoxButtons.OKCancel) == DialogResult.OK)
+            string ma = txbMaGV.Text;
+
+            if (MessageBox.Show("Bạn có chắc muốn xóa GV " + txbHoTen.Text + "?", "Xác nhận", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                if (GiangVienDAO.Instance.DeleteGiangVien(txbMaGV.Text))
+                if (GiangVienDAO.Instance.DeleteGiangVien(ma))
                 {
                     MessageBox.Show("Xóa thành công!");
                     LoadListGiangVien();
                 }
-                else MessageBox.Show("Không thể xóa (Có thể GV này đang dạy lớp học phần).");
+                else
+                {
+                    MessageBox.Show("Không thể xóa (GV này đang phụ trách môn học)!");
+                }
             }
         }
     }

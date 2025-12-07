@@ -55,9 +55,9 @@ namespace QuanLySinhVien
             if (dgvMonHoc.SelectedRows.Count > 0)
             {
                 MonHoc mh = (MonHoc)dgvMonHoc.SelectedRows[0].DataBoundItem;
-                if (MessageBox.Show("Xóa môn " + mh.TenMon + "?", "Xác nhận", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                if (MessageBox.Show("Xóa môn " + mh.TenMonHoc + "?", "Xác nhận", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    if (MonHocDAO.Instance.DeleteMonHoc(mh.MaMon))
+                    if (MonHocDAO.Instance.DeleteMonHoc(mh.MaMonHoc))
                         LoadListMonHoc();
                     else
                         MessageBox.Show("Không thể xóa (Môn này đã có điểm)!");

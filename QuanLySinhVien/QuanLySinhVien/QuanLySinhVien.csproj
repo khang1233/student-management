@@ -59,6 +59,7 @@
     <Compile Include="DAO\ThongKeDAO.cs" />
     <Compile Include="DTO\Account.cs" />
     <Compile Include="DTO\AppSession.cs" />
+    <Compile Include="DTO\GiangVien.cs" />
     <Compile Include="DTO\KetQua.cs" />
     <Compile Include="DTO\MonHoc.cs" />
     <Compile Include="DTO\SinhVien.cs" />

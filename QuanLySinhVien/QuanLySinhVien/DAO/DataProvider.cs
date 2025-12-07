@@ -20,6 +20,7 @@ namespace QuanLySinhVien.DAO
 
         // --- CHUỖI KẾT NỐI (QUAN TRỌNG NHẤT) ---
         // Đã sửa thành LocalDB theo đúng máy của bạn
+        // Lưu ý: Phải giữ nguyên dấu @ ở phía trước dấu ngoặc kép
         private string connectionSTR = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=QuanLySinhVien;Integrated Security=True";
 
         // 1. Hàm chạy câu lệnh SELECT (Lấy dữ liệu dạng bảng)

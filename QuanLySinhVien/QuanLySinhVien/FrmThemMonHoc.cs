@@ -22,12 +22,12 @@ namespace QuanLySinhVien
             InitializeComponent();
             this.Text = "Cập nhật môn học";
             this.labelTitle.Text = "CẬP NHẬT MÔN";
-            this.maMonSua = mh.MaMon; // Đánh dấu là đang sửa mã này
+            this.maMonSua = mh.MaMonHoc; // Đánh dấu là đang sửa mã này
 
             // Đổ dữ liệu cũ lên ô nhập
-            txbMaMon.Text = mh.MaMon;
+            txbMaMon.Text = mh.MaMonHoc;
             txbMaMon.Enabled = false; // Khóa không cho sửa Mã
-            txbTenMon.Text = mh.TenMon;
+            txbTenMon.Text = mh.TenMonHoc;
             nudTinChi.Value = mh.SoTinChi;
         }
 

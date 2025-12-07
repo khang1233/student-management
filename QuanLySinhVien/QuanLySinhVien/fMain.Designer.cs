@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             this.panelMenu = new System.Windows.Forms.Panel();
+            // [MỚI] Khởi tạo nút Tài Khoản
+            this.btnTaiKhoan = new System.Windows.Forms.Button();
             this.btnSystem = new System.Windows.Forms.Button();
             this.btnHocPhi = new System.Windows.Forms.Button();
             this.btnDiem = new System.Windows.Forms.Button();
@@ -49,9 +51,12 @@
             this.SuspendLayout();
 
             // 
-            // panelMenu (Menu Bên Trái)
+            // panelMenu
             // 
             this.panelMenu.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(51)))), ((int)(((byte)(76)))));
+            // Lưu ý: Với Dock=Top, cái nào Add trước sẽ nằm dưới cùng. 
+            // Tôi Add btnTaiKhoan trước để nó nằm dưới cùng.
+            this.panelMenu.Controls.Add(this.btnTaiKhoan);
             this.panelMenu.Controls.Add(this.btnSystem);
             this.panelMenu.Controls.Add(this.btnHocPhi);
             this.panelMenu.Controls.Add(this.btnDiem);
@@ -67,7 +72,7 @@
             this.panelMenu.TabIndex = 0;
 
             // 
-            // panelLogo (Vùng Logo góc trái trên)
+            // panelLogo
             // 
             this.panelLogo.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(39)))), ((int)(((byte)(39)))), ((int)(((byte)(58)))));
             this.panelLogo.Controls.Add(this.lblLogo);
@@ -89,7 +94,7 @@
             this.lblLogo.TabIndex = 0;
             this.lblLogo.Text = "QL SINH VIÊN";
 
-            // --- CÁC NÚT MENU (Flat Design) ---
+            // --- CẤU HÌNH CÁC NÚT ---
 
             // btnSinhVien
             this.btnSinhVien.Dock = System.Windows.Forms.DockStyle.Top;
@@ -193,7 +198,7 @@
             this.btnHocPhi.UseVisualStyleBackColor = true;
             this.btnHocPhi.Click += new System.EventHandler(this.btnHocPhi_Click);
 
-            // btnSystem (Hệ thống)
+            // btnSystem
             this.btnSystem.Dock = System.Windows.Forms.DockStyle.Top;
             this.btnSystem.FlatAppearance.BorderSize = 0;
             this.btnSystem.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -210,8 +215,25 @@
             this.btnSystem.UseVisualStyleBackColor = true;
             this.btnSystem.Click += new System.EventHandler(this.btnSystem_Click);
 
+            // [MỚI] btnTaiKhoan
+            this.btnTaiKhoan.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btnTaiKhoan.FlatAppearance.BorderSize = 0;
+            this.btnTaiKhoan.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnTaiKhoan.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnTaiKhoan.ForeColor = System.Drawing.Color.Gainsboro;
+            this.btnTaiKhoan.Location = new System.Drawing.Point(0, 500); // Vị trí tiếp theo
+            this.btnTaiKhoan.Name = "btnTaiKhoan";
+            this.btnTaiKhoan.Padding = new System.Windows.Forms.Padding(12, 0, 0, 0);
+            this.btnTaiKhoan.Size = new System.Drawing.Size(220, 60);
+            this.btnTaiKhoan.TabIndex = 8;
+            this.btnTaiKhoan.Text = "   Tài Khoản";
+            this.btnTaiKhoan.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnTaiKhoan.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+            this.btnTaiKhoan.UseVisualStyleBackColor = true;
+            this.btnTaiKhoan.Click += new System.EventHandler(this.btnTaiKhoan_Click);
+
             // 
-            // panelTitleBar (Thanh tiêu đề ngang)
+            // panelTitleBar
             // 
             this.panelTitleBar.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(150)))), ((int)(((byte)(136)))));
             this.panelTitleBar.Controls.Add(this.lblTitle);
@@ -235,7 +257,7 @@
             this.lblTitle.Text = "HOME";
 
             // 
-            // panelDesktop (Vùng hiển thị nội dung chính)
+            // panelDesktop
             // 
             this.panelDesktop.BackColor = System.Drawing.Color.White;
             this.panelDesktop.Controls.Add(this.labelWelcome);
@@ -292,6 +314,8 @@
         private System.Windows.Forms.Button btnMonHoc;
         private System.Windows.Forms.Button btnLopHoc;
         private System.Windows.Forms.Button btnGiangVien;
+        // [MỚI] Khai báo nút Tài Khoản
+        private System.Windows.Forms.Button btnTaiKhoan;
         private System.Windows.Forms.Panel panelTitleBar;
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Label lblLogo;

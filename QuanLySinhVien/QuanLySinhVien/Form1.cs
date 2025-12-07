@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Windows.Forms;
-using QuanLySinhVien.DAO; // Đảm bảo dòng này không bị gạch đỏ. Nếu đỏ, hãy xóa ".DAO" đi tạm thời.
+using QuanLySinhVien.DAO; // Để dùng AccountDAO
+using QuanLySinhVien.DTO; // [QUAN TRỌNG] Để dùng class Account
 
 namespace QuanLySinhVien
 {
+    // Lưu ý: Nếu tên Form của bạn là fLogin thì sửa 'Form1' thành 'fLogin'
     public partial class Form1 : Form
     {
         public Form1()
@@ -11,57 +13,52 @@ namespace QuanLySinhVien
             InitializeComponent();
         }
 
-        // --- ĐÂY LÀ 2 HÀM MÀ MÁY TÍNH ĐANG TÌM KIẾM ---
-
-        // 1. Hàm xử lý nút X (Tắt app)
+        // 1. Nút Thoát
         private void btnClose_Click(object sender, EventArgs e)
         {
-            Application.Exit();
+            if (MessageBox.Show("Bạn có thật sự muốn thoát chương trình?", "Thông báo", MessageBoxButtons.OKCancel) == DialogResult.OK)
+            {
+                Application.Exit();
+            }
         }
 
-        // 2. Hàm xử lý nút Đăng Nhập
+        // 2. Nút Đăng Nhập (Đã cập nhật Logic Phân Quyền)
         private void btnLogin_Click(object sender, EventArgs e)
         {
             string userName = txbUserName.Text;
             string passWord = txbPassWord.Text;
 
-            // Nếu bạn chưa tạo xong DAO, bỏ comment dòng dưới để test nhanh:
-            // MessageBox.Show("Test đăng nhập: " + userName); return;
+            // Kiểm tra nhập thiếu
+            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(passWord))
+            {
+                MessageBox.Show("Vui lòng nhập tài khoản và mật khẩu!", "Thông báo");
+                return;
+            }
 
-            // Code kết nối SQL (Nếu đã tạo DataProvider và AccountDAO)
             try
             {
-                // Câu lệnh SQL kiểm tra đăng nhập
-                string query = "SELECT * FROM TaiKhoan WHERE TenDangNhap = '" + userName + "' AND MatKhau = '" + passWord + "'";
-
-                // Gọi DataProvider để chạy lệnh
-                var result = DataProvider.Instance.ExecuteQuery(query);
-
-                if (result.Rows.Count > 0)
+                // BƯỚC 1: Kiểm tra Đăng nhập bằng AccountDAO (Thay vì viết SQL trực tiếp)
+                if (AccountDAO.Instance.Login(userName, passWord))
                 {
-                    if (result.Rows.Count > 0)
-                    {
-                        // 1. Thông báo nhẹ
-                        MessageBox.Show("Đăng nhập thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // BƯỚC 2: Nếu đúng, lấy toàn bộ thông tin tài khoản (Quyền, Mã người dùng...)
+                    Account loginAccount = AccountDAO.Instance.GetAccountByUserName(userName);
 
-                        // 2. Mở form chính
-                        fMain f = new fMain(); // Tạo bản sao của form chính
-                        this.Hide(); // Ẩn form đăng nhập đi
-                        f.ShowDialog(); // Hiện form chính lên và đợi
+                    // BƯỚC 3: Mở Form Main và GỬI KÈM tài khoản sang đó
+                    // (Lúc này fMain sẽ biết bạn là Admin hay Sinh viên để ẩn/hiện nút)
+                    fMain f = new fMain(loginAccount);
 
-                        // 3. Khi form chính tắt, thì hiện lại form đăng nhập
-                        this.Show();
-                    }
+                    this.Hide(); // Ẩn form đăng nhập
+                    f.ShowDialog(); // Hiện form chính
+                    this.Show(); // Khi form chính tắt thì hiện lại form đăng nhập
                 }
                 else
                 {
-                    MessageBox.Show("Sai tài khoản hoặc mật khẩu!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Sai tên tài khoản hoặc mật khẩu!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
             {
-                // Nếu chưa kết nối được SQL, nó sẽ báo lỗi ở đây
-                MessageBox.Show("Lỗi kết nối: " + ex.Message);
+                MessageBox.Show("Lỗi kết nối hệ thống: " + ex.Message);
             }
         }
     }

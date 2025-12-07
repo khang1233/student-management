@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient; // Thư viện quan trọng để kết nối SQL
+using System.Data.SqlClient; // Thư viện để kết nối SQL
 using System.Linq;
 
 namespace QuanLySinhVien.DAO
 {
     public class DataProvider
     {
-        // Design Pattern Singleton: Chỉ tạo duy nhất 1 instance trong suốt quá trình chạy
+        // Design Pattern Singleton: Chỉ tạo duy nhất 1 instance
         private static DataProvider instance;
 
         public static DataProvider Instance
@@ -18,12 +18,11 @@ namespace QuanLySinhVien.DAO
 
         private DataProvider() { }
 
-        // CHUỖI KẾT NỐI
-        // Lưu ý: Nếu máy bạn tên khác, hãy sửa lại đoạn "Data Source=..." cho phù hợp
-        // Lưu ý: Phải có dấu @ ở đầu để C# hiểu dấu gạch chéo \
+        // --- CHUỖI KẾT NỐI (QUAN TRỌNG NHẤT) ---
+        // Đã sửa thành LocalDB theo đúng máy của bạn
         private string connectionSTR = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=QuanLySinhVien;Integrated Security=True";
 
-        // 1. Hàm chạy câu lệnh SELECT (Lấy dữ liệu ra dạng bảng)
+        // 1. Hàm chạy câu lệnh SELECT (Lấy dữ liệu dạng bảng)
         public DataTable ExecuteQuery(string query, object[] parameter = null)
         {
             DataTable data = new DataTable();
@@ -80,8 +79,7 @@ namespace QuanLySinhVien.DAO
             return data;
         }
 
-        // 3. [MỚI] Hàm lấy 1 giá trị duy nhất (Dùng cho COUNT, SUM...)
-        // Đây là hàm bạn đang thiếu để chạy ThongKeDAO
+        // 3. Hàm lấy 1 giá trị duy nhất (Dùng cho COUNT, SUM...)
         public object ExecuteScalar(string query, object[] parameter = null)
         {
             object data = 0;
@@ -103,7 +101,6 @@ namespace QuanLySinhVien.DAO
                         }
                     }
                 }
-                // ExecuteScalar trả về ô đầu tiên của dòng đầu tiên
                 data = command.ExecuteScalar();
                 connection.Close();
             }

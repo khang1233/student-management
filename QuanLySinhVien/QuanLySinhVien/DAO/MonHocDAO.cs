@@ -30,7 +30,8 @@ namespace QuanLySinhVien.DAO
         // 2. Thêm môn học mới
         public bool InsertMonHoc(string ma, string ten, int tinchi)
         {
-            string query = "INSERT INTO MonHoc (MaMon, TenMon, SoTinChi) VALUES ( @ma , @ten , @tinchi )";
+            // SỬA: MaMon -> MaMonHoc, TenMon -> TenMonHoc
+            string query = "INSERT INTO MonHoc (MaMonHoc, TenMonHoc, SoTinChi) VALUES ( @ma , @ten , @tinchi )";
             int result = DataProvider.Instance.ExecuteNonQuery(query, new object[] { ma, ten, tinchi });
             return result > 0;
         }
@@ -38,7 +39,8 @@ namespace QuanLySinhVien.DAO
         // 3. Cập nhật môn học
         public bool UpdateMonHoc(string ma, string ten, int tinchi)
         {
-            string query = "UPDATE MonHoc SET TenMon = @ten , SoTinChi = @tinchi WHERE MaMon = @ma ";
+            // SỬA: MaMon -> MaMonHoc, TenMon -> TenMonHoc
+            string query = "UPDATE MonHoc SET TenMonHoc = @ten , SoTinChi = @tinchi WHERE MaMonHoc = @ma ";
             int result = DataProvider.Instance.ExecuteNonQuery(query, new object[] { ten, tinchi, ma });
             return result > 0;
         }
@@ -46,25 +48,33 @@ namespace QuanLySinhVien.DAO
         // 4. Xóa môn học
         public bool DeleteMonHoc(string ma)
         {
-            // Lưu ý: Nếu môn học đã có điểm thì không nên xóa (sẽ lỗi khóa ngoại)
-            string query = "DELETE MonHoc WHERE MaMon = @ma ";
+            // SỬA: MaMon -> MaMonHoc
+            string query = "DELETE MonHoc WHERE MaMonHoc = @ma ";
             int result = DataProvider.Instance.ExecuteNonQuery(query, new object[] { ma });
             return result > 0;
         }
 
-        // 5. Kiểm tra mã môn đã tồn tại chưa (HÀM BẠN ĐANG THIẾU)
+        // 5. Kiểm tra mã môn đã tồn tại chưa
         public bool CheckExistMaMon(string ma)
         {
-            string query = "SELECT * FROM MonHoc WHERE MaMon = '" + ma + "'";
+            // SỬA: MaMon -> MaMonHoc
+            string query = "SELECT * FROM MonHoc WHERE MaMonHoc = '" + ma + "'";
             DataTable result = DataProvider.Instance.ExecuteQuery(query);
             return result.Rows.Count > 0;
         }
 
         // 6. Tìm kiếm môn học theo tên
-        public List<MonHoc> SearchMonHoc(string name)
+        // 6. Tìm kiếm môn học theo Tên HOẶC Mã
+        public List<MonHoc> SearchMonHoc(string keyword)
         {
             List<MonHoc> list = new List<MonHoc>();
-            string query = "SELECT * FROM MonHoc WHERE TenMon LIKE N'%" + name + "%'";
+
+            // SỬA CÂU LỆNH SQL: 
+            // Thêm đoạn: OR MaMonHoc LIKE '%" + keyword + "%'
+            // Ý nghĩa: Tìm những dòng mà Tên chứa từ khóa HOẶC Mã chứa từ khóa
+
+            string query = "SELECT * FROM MonHoc WHERE TenMonHoc LIKE N'%" + keyword + "%' OR MaMonHoc LIKE '%" + keyword + "%'";
+
             DataTable data = DataProvider.Instance.ExecuteQuery(query);
             foreach (DataRow item in data.Rows)
             {

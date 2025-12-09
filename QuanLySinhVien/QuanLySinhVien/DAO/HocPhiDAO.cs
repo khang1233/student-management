@@ -15,10 +15,11 @@ namespace QuanLySinhVien.DAO
         // 1. Lấy thông tin học phí của 1 sinh viên
         public DataTable GetHocPhi(string maSV)
         {
-            // Nếu sinh viên chưa có trong bảng học phí thì thêm vào trước
-            string init = "INSERT INTO HocPhi (MaSV, TongHocPhi, DaDong) " +
+            // SỬA TẠI DÒNG DƯỚI ĐÂY:
+            string init = "INSERT INTO HocPhi (MaSV, TongTien, DaDong) " +
                           "SELECT '" + maSV + "', 5000000, 0 " +
                           "WHERE NOT EXISTS (SELECT * FROM HocPhi WHERE MaSV = '" + maSV + "')";
+
             DataProvider.Instance.ExecuteNonQuery(init);
 
             string query = "SELECT * FROM HocPhi WHERE MaSV = '" + maSV + "'";

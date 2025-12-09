@@ -36,14 +36,13 @@ namespace QuanLySinhVien.DAO
         }
         public bool InsertSinhVien(string maSV, string hoTen, DateTime ngaySinh, string gioiTinh, string diaChi, string sdt, string email, string maLop)
         {
-            // Câu lệnh SQL Insert (Lưu ý: HinhAnh ta tạm để NULL, TrangThai mặc định là 1)
-            string query = "INSERT INTO SinhVien (MaSV, HoTen, NgaySinh, GioiTinh, DiaChi, SoDienThoai, Email, HinhAnh, MaLop, TrangThai) " +
-                           "VALUES ( @maSV , @hoTen , @ngaySinh , @gioiTinh , @diaChi , @sdt , @email , NULL , @maLop , 1 )";
+            // Đã xóa HinhAnh và TrangThai khỏi câu lệnh SQL
+            string query = "INSERT INTO SinhVien (MaSV, HoTen, NgaySinh, GioiTinh, DiaChi, SoDienThoai, Email, MaLop) " +
+                           "VALUES ( @maSV , @hoTen , @ngaySinh , @gioiTinh , @diaChi , @sdt , @email , @maLop )";
 
-            // Danh sách tham số truyền vào tương ứng với @ ở trên
+            // Danh sách tham số (giữ nguyên vì số lượng tham số đầu vào không đổi)
             object[] parameters = new object[] { maSV, hoTen, ngaySinh, gioiTinh, diaChi, sdt, email, maLop };
 
-            // Thực thi lệnh. Nếu số dòng thêm được > 0 nghĩa là thành công
             int result = DataProvider.Instance.ExecuteNonQuery(query, parameters);
 
             return result > 0;
@@ -78,19 +77,16 @@ namespace QuanLySinhVien.DAO
             int result = DataProvider.Instance.ExecuteNonQuery(query, new object[] { maSV });
             return result > 0;
         }
-        public System.Collections.Generic.List<SinhVien> SearchSinhVienByName(string name)
+        public List<SinhVien> SearchSinhVienByID(string id)
         {
-            System.Collections.Generic.List<SinhVien> list = new System.Collections.Generic.List<SinhVien>();
-
-            // Dùng LIKE N'%...%' để tìm kiếm gần đúng và có dấu tiếng Việt
-            string query = "SELECT * FROM SinhVien WHERE HoTen LIKE N'%" + name + "%'";
+            List<SinhVien> list = new List<SinhVien>();
+            // Dùng dấu = để tìm chính xác, tránh việc SV001 nhìn thấy SV0011
+            string query = "SELECT * FROM SinhVien WHERE MaSV = '" + id + "'";
 
             System.Data.DataTable data = DataProvider.Instance.ExecuteQuery(query);
-
             foreach (System.Data.DataRow item in data.Rows)
             {
-                SinhVien sv = new SinhVien(item);
-                list.Add(sv);
+                list.Add(new SinhVien(item));
             }
             return list;
         }

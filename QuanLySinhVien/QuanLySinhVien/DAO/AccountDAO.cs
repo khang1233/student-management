@@ -13,16 +13,19 @@ namespace QuanLySinhVien.DAO
         }
         private AccountDAO() { }
 
-        // 1. Kiểm tra đăng nhập (True/False)
-        public bool Login(string userName, string passWord)
+        // --- HÀM LOGIN ĐÃ SỬA ---
+        // Thêm tham số 'role' vào hàm
+        // --- SỬA LẠI TÊN CỘT TRONG CÂU LỆNH SQL ---
+        public bool Login(string userName, string passWord, string role)
         {
-            // Câu lệnh SQL khớp với bảng TaiKhoan bạn vừa tạo
-            string query = "SELECT * FROM TaiKhoan WHERE TenDangNhap = '" + userName + "' AND MatKhau = '" + passWord + "'";
+            // Thay 'LoaiTaiKhoan' thành 'Quyen' (hoặc tên cột thật của bạn)
+            string query = "SELECT * FROM TaiKhoan WHERE TenDangNhap = '" + userName + "' AND MatKhau = '" + passWord + "' AND Quyen = N'" + role + "'";
+
             DataTable result = DataProvider.Instance.ExecuteQuery(query);
             return result.Rows.Count > 0;
         }
 
-        // 2. Lấy thông tin Account (để biết Quyền là gì)
+        // 2. Lấy thông tin Account
         public Account GetAccountByUserName(string userName)
         {
             string query = "SELECT * FROM TaiKhoan WHERE TenDangNhap = '" + userName + "'";
@@ -34,12 +37,19 @@ namespace QuanLySinhVien.DAO
             }
             return null;
         }
-        // Thêm hàm này vào trong class AccountDAO
+
+        // 3. Cập nhật mật khẩu
         public bool UpdatePassword(string userName, string passMoi)
         {
-            // Câu lệnh Update mật khẩu
             string query = "UPDATE TaiKhoan SET MatKhau = '" + passMoi + "' WHERE TenDangNhap = '" + userName + "'";
-            return DataProvider.Instance.ExecuteNonQuery(query) > 0;
+            int result = DataProvider.Instance.ExecuteNonQuery(query);
+            return result > 0;
+        }
+        // Trong AccountDAO.cs
+        public bool InsertAccount(string user, string pass, string quyen, string maNguoiDung)
+        {
+            string query = "INSERT INTO TaiKhoan (TenDangNhap, MatKhau, Quyen, MaNguoiDung) VALUES ( @user , @pass , @quyen , @maND )";
+            return DataProvider.Instance.ExecuteNonQuery(query, new object[] { user, pass, quyen, maNguoiDung }) > 0;
         }
     }
 }

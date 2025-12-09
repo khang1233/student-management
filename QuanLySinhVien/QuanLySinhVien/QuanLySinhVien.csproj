@@ -143,11 +143,20 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="fChangePassword.resx">
+      <DependentUpon>fChangePassword.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="fMain.resx">
       <DependentUpon>fMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmDiem.resx">
+      <DependentUpon>FrmDiem.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmHocPhi.resx">
+      <DependentUpon>FrmHocPhi.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FrmSinhVien.resx">
       <DependentUpon>FrmSinhVien.cs</DependentUpon>

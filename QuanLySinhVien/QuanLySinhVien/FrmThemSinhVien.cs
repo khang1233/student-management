@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using QuanLySinhVien.DAO;
-using QuanLySinhVien.DTO; // Quan trọng: Cần thêm dòng này để hiểu kiểu dữ liệu SinhVien
+using QuanLySinhVien.DTO;
 
 namespace QuanLySinhVien
 {
@@ -15,23 +15,22 @@ namespace QuanLySinhVien
         {
             InitializeComponent();
             this.Text = "Thêm mới sinh viên";
-            txbMaLop.Text = "62TH1"; // Gợi ý sẵn mã lớp
+            // txbMaLop.Text = "62TH1"; // Gợi ý sẵn mã lớp (Tùy chọn)
         }
 
         // 2. Constructor có tham số (Dùng cho SỬA)
-        // Khi gọi cái này, form sẽ tự điền dữ liệu cũ lên
         public FrmThemSinhVien(SinhVien sv)
         {
             InitializeComponent();
-            this.Text = "Cập nhật sinh viên"; // Đổi tên cửa sổ
-            this.labelTitle.Text = "CẬP NHẬT THÔNG TIN"; // Đổi tiêu đề to
+            this.Text = "Cập nhật sinh viên";
+            this.labelTitle.Text = "CẬP NHẬT THÔNG TIN";
 
-            // Lưu lại Mã SV đang sửa để lát nữa dùng trong câu lệnh Update
+            // Lưu lại Mã SV đang sửa
             this.maSVSua = sv.MaSV;
 
             // Đổ dữ liệu cũ lên các ô
             txbMaSV.Text = sv.MaSV;
-            txbMaSV.Enabled = false; // KHÓA ô Mã SV lại (Không được sửa khóa chính)
+            txbMaSV.Enabled = false; // KHÓA ô Mã SV lại
 
             txbHoTen.Text = sv.HoTen;
             dtpNgaySinh.Value = sv.NgaySinh;
@@ -44,9 +43,10 @@ namespace QuanLySinhVien
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            this.Close(); // Đóng form
+            this.Close();
         }
 
+        // --- SỰ KIỆN LƯU (QUAN TRỌNG NHẤT) ---
         private void btnSave_Click(object sender, EventArgs e)
         {
             // 1. Lấy dữ liệu từ ô nhập
@@ -59,7 +59,7 @@ namespace QuanLySinhVien
             string email = txbEmail.Text;
             string maLop = txbMaLop.Text;
 
-            // 2. Kiểm tra dữ liệu (Validation) cơ bản
+            // 2. Kiểm tra dữ liệu (Validation)
             if (string.IsNullOrEmpty(maSV) || string.IsNullOrEmpty(hoTen))
             {
                 MessageBox.Show("Vui lòng nhập Mã SV và Họ Tên!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -71,41 +71,68 @@ namespace QuanLySinhVien
             {
                 bool ketQua = false;
 
-                // TRƯỜNG HỢP 1: THÊM MỚI (biến maSVSua là null)
+                // TRƯỜNG HỢP 1: THÊM MỚI (Insert)
                 if (maSVSua == null)
                 {
-                    // Kiểm tra trùng mã (Chỉ kiểm tra khi thêm mới)
+                    // Kiểm tra trùng mã
                     if (SinhVienDAO.Instance.CheckExistMaSV(maSV))
                     {
                         MessageBox.Show("Mã Sinh Viên này đã tồn tại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
 
-                    // Gọi hàm Insert
+                    // Gọi hàm Insert vào bảng SinhVien
                     ketQua = SinhVienDAO.Instance.InsertSinhVien(maSV, hoTen, ngaySinh, gioiTinh, diaChi, sdt, email, maLop);
                 }
-                // TRƯỜNG HỢP 2: CẬP NHẬT (biến maSVSua có giá trị)
+                // TRƯỜNG HỢP 2: CẬP NHẬT (Update)
                 else
                 {
-                    // Gọi hàm Update
+                    // Gọi hàm Update vào bảng SinhVien
                     ketQua = SinhVienDAO.Instance.UpdateSinhVien(maSV, hoTen, ngaySinh, gioiTinh, diaChi, sdt, email, maLop);
                 }
 
-                // Kiểm tra kết quả chung
+                // 4. KIỂM TRA KẾT QUẢ VÀ TỰ ĐỘNG TẠO TÀI KHOẢN
                 if (ketQua)
                 {
-                    MessageBox.Show("Thực hiện thành công!", "Thông báo");
-                    this.DialogResult = DialogResult.OK; // Báo OK để form danh sách biết mà tải lại
-                    this.Close();
+                    // --- [CODE MỚI THÊM VÀO] ---
+                    // Chỉ tạo tài khoản khi đang THÊM MỚI (maSVSua == null)
+                    if (maSVSua == null)
+                    {
+                        // Tạo thông tin tài khoản mặc định
+                        string user = maSV.ToLower(); // Tên đăng nhập là mã SV viết thường
+                        string pass = "1";            // Mật khẩu là 1
+                        string role = "SinhVien";     // Quyền là SinhVien
+
+                        // Gọi hàm thêm tài khoản (Hàm này bạn đã thêm vào AccountDAO ở bước trước)
+                        bool tkResult = AccountDAO.Instance.InsertAccount(user, pass, role, maSV);
+
+                        if (tkResult)
+                        {
+                            MessageBox.Show($"Thêm sinh viên thành công!\n\nĐã tự động cấp tài khoản:\nUser: {user}\nPass: {pass}", "Thông báo");
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Thêm sinh viên thành công nhưng lỗi cấp tài khoản (Có thể User đã tồn tại).", "Cảnh báo");
+                        }
+                    }
+                    else
+                    {
+                        // Trường hợp Update thì chỉ thông báo đơn giản
+                        MessageBox.Show("Cập nhật thông tin sinh viên thành công!", "Thông báo");
+                    }
+                    // ---------------------------
+
+                    this.DialogResult = DialogResult.OK; // Báo OK để form cha load lại danh sách
+                    this.Close(); // Đóng form nhập liệu
                 }
                 else
                 {
-                    MessageBox.Show("Thất bại! Vui lòng kiểm tra lại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Thao tác thất bại! Vui lòng kiểm tra lại dữ liệu.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi SQL: " + ex.Message + "\n(Hãy kiểm tra xem Mã Lớp đã đúng chưa?)", "Lỗi Hệ Thống");
+                MessageBox.Show("Lỗi Hệ Thống (SQL): " + ex.Message + "\n(Hãy kiểm tra lại Mã Lớp xem có tồn tại không?)", "Lỗi Nghiêm Trọng");
             }
         }
     }

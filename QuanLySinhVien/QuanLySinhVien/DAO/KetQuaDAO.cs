@@ -1,6 +1,7 @@
 ﻿using QuanLySinhVien.DTO;
 using System.Collections.Generic;
 using System.Data;
+using System;
 
 namespace QuanLySinhVien.DAO
 {
@@ -14,16 +15,21 @@ namespace QuanLySinhVien.DAO
         }
         private KetQuaDAO() { }
 
-        // 1. Lấy bảng điểm của 1 Sinh Viên (Kết hợp bảng MonHoc và KetQua)
+        // 1. Lấy bảng điểm: JOIN trực tiếp MonHoc và KetQua (BỎ LopHocPhan)
         public List<KetQua> GetListKetQuaByMaSV(string maSV)
         {
             List<KetQua> list = new List<KetQua>();
 
-            // Câu lệnh SQL "thần thánh": Lấy tất cả Môn học, nếu SV có điểm thì hiện, chưa có thì hiện NULL
-            string query = "SELECT mh.TenMon, mh.MaMon, kq.DiemQT, kq.DiemThi, kq.DiemTongKet " +
+            // SỬA CÂU LENH SQL:
+            // 1. Bỏ bảng LopHocPhan.
+            // 2. Map cột SQL (DiemLan1) sang tên biến C# (DiemQT) bằng lệnh AS.
+            // 3. Tính DiemTongKet ngay trong câu lệnh SQL (vì bảng KetQua không lưu cột này).
+
+            string query = "SELECT mh.TenMonHoc AS TenMon, mh.MaMonHoc AS MaMon, " +
+                           "kq.DiemLan1 AS DiemQT, kq.DiemLan2 AS DiemThi, " +
+                           "(ISNULL(kq.DiemLan1, 0) * 0.3 + ISNULL(kq.DiemLan2, 0) * 0.7) AS DiemTongKet " +
                            "FROM MonHoc mh " +
-                           "LEFT JOIN LopHocPhan lhp ON lhp.MaMon = mh.MaMon " +
-                           "LEFT JOIN KetQua kq ON kq.MaLopHP = lhp.MaLopHP AND kq.MaSV = '" + maSV + "'";
+                           "LEFT JOIN KetQua kq ON kq.MaMonHoc = mh.MaMonHoc AND kq.MaSV = '" + maSV + "'";
 
             DataTable data = DataProvider.Instance.ExecuteQuery(query);
             foreach (DataRow item in data.Rows)
@@ -33,34 +39,36 @@ namespace QuanLySinhVien.DAO
             return list;
         }
 
-        // 2. Lưu điểm (Tự động Insert hoặc Update)
+        // 2. Lưu điểm: Sửa lại logic INSERT/UPDATE theo MaMonHoc
         public bool SaveDiem(string maSV, string maMon, double diemQT, double diemThi)
         {
-            // Tính điểm tổng kết (VD: 30% - 70%)
-            double diemTK = (diemQT * 0.3) + (diemThi * 0.7);
-
-            // Tìm mã lớp học phần tương ứng
-            string maLopHP = "LHP_" + maMon;
-
-            // Kiểm tra xem đã có điểm chưa?
-            string check = "SELECT * FROM KetQua WHERE MaSV = '" + maSV + "' AND MaLopHP = '" + maLopHP + "'";
+            // Kiểm tra xem sinh viên này đã có điểm môn này chưa
+            string check = "SELECT * FROM KetQua WHERE MaSV = '" + maSV + "' AND MaMonHoc = '" + maMon + "'";
             var data = DataProvider.Instance.ExecuteQuery(check);
 
             string query;
             if (data.Rows.Count > 0)
             {
-                // Có rồi -> UPDATE
-                query = "UPDATE KetQua SET DiemQT = " + diemQT + ", DiemThi = " + diemThi + ", DiemTongKet = " + diemTK +
-                        " WHERE MaSV = '" + maSV + "' AND MaLopHP = '" + maLopHP + "'";
+                // Có rồi -> UPDATE (Dùng cột DiemLan1, DiemLan2 như trong SQL của bạn)
+                query = "UPDATE KetQua SET DiemLan1 = " + diemQT + ", DiemLan2 = " + diemThi +
+                        " WHERE MaSV = '" + maSV + "' AND MaMonHoc = '" + maMon + "'";
             }
             else
             {
                 // Chưa có -> INSERT
-                query = "INSERT INTO KetQua (MaSV, MaLopHP, DiemQT, DiemThi, DiemTongKet) " +
-                        "VALUES ('" + maSV + "', '" + maLopHP + "', " + diemQT + ", " + diemThi + ", " + diemTK + ")";
+                query = "INSERT INTO KetQua (MaSV, MaMonHoc, DiemLan1, DiemLan2) " +
+                        "VALUES ('" + maSV + "', '" + maMon + "', " + diemQT + ", " + diemThi + ")";
             }
 
             return DataProvider.Instance.ExecuteNonQuery(query) > 0;
+        }
+        // Hàm lấy điểm cho riêng 1 sinh viên
+        public System.Data.DataTable GetListDiemByMaSV(string maSV)
+        {
+            // Chỉ lấy những dòng có MaSV trùng với người đăng nhập
+            string query = "SELECT * FROM Diem WHERE MaSV = '" + maSV + "'";
+
+            return DataProvider.Instance.ExecuteQuery(query);
         }
     }
 }

@@ -28,116 +28,68 @@
         /// </summary>
         private void InitializeComponent()
         {
-            // --- 1. KHỞI TẠO CÁC CONTROL ---
             this.panelLeft = new System.Windows.Forms.Panel();
             this.dgvSinhVien = new System.Windows.Forms.DataGridView();
             this.labelTitleLeft = new System.Windows.Forms.Label();
-
             this.panelRight = new System.Windows.Forms.Panel();
             this.panelTool = new System.Windows.Forms.Panel();
             this.lblTenSV = new System.Windows.Forms.Label();
-
-            // Các label hiển thị tiền
             this.lblTongHP = new System.Windows.Forms.Label();
             this.lblDaDong = new System.Windows.Forms.Label();
             this.lblConNo = new System.Windows.Forms.Label();
-
-            // Khu vực nhập liệu thanh toán
             this.labelHuongDan = new System.Windows.Forms.Label();
             this.txbSoTienDong = new System.Windows.Forms.TextBox();
             this.btnXacNhanDong = new System.Windows.Forms.Button();
-
-            ((System.ComponentModel.ISupportInitialize)(this.dgvSinhVien)).BeginInit();
             this.panelLeft.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvSinhVien)).BeginInit();
             this.panelRight.SuspendLayout();
             this.panelTool.SuspendLayout();
             this.SuspendLayout();
-
             // 
-            // --- 2. CẤU HÌNH PANEL TRÁI (DANH SÁCH SINH VIÊN) ---
+            // panelLeft
             // 
             this.panelLeft.Controls.Add(this.dgvSinhVien);
             this.panelLeft.Controls.Add(this.labelTitleLeft);
             this.panelLeft.Dock = System.Windows.Forms.DockStyle.Left;
-            this.panelLeft.Size = new System.Drawing.Size(300, 450);
-
-            // Label Tiêu đề trái
+            this.panelLeft.Location = new System.Drawing.Point(0, 0);
+            this.panelLeft.Margin = new System.Windows.Forms.Padding(5);
+            this.panelLeft.Name = "panelLeft";
+            this.panelLeft.Size = new System.Drawing.Size(500, 762);
+            this.panelLeft.TabIndex = 1;
+            // 
+            // dgvSinhVien
+            // 
+            this.dgvSinhVien.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvSinhVien.BackgroundColor = System.Drawing.Color.White;
+            this.dgvSinhVien.ColumnHeadersHeight = 39;
+            this.dgvSinhVien.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvSinhVien.Location = new System.Drawing.Point(0, 68);
+            this.dgvSinhVien.Margin = new System.Windows.Forms.Padding(5);
+            this.dgvSinhVien.MultiSelect = false;
+            this.dgvSinhVien.Name = "dgvSinhVien";
+            this.dgvSinhVien.RowHeadersVisible = false;
+            this.dgvSinhVien.RowHeadersWidth = 70;
+            this.dgvSinhVien.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvSinhVien.Size = new System.Drawing.Size(500, 694);
+            this.dgvSinhVien.TabIndex = 0;
+            this.dgvSinhVien.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvSinhVien_CellClick);
+            // 
+            // labelTitleLeft
+            // 
+            this.labelTitleLeft.BackColor = System.Drawing.Color.WhiteSmoke;
             this.labelTitleLeft.Dock = System.Windows.Forms.DockStyle.Top;
             this.labelTitleLeft.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
-            this.labelTitleLeft.Padding = new System.Windows.Forms.Padding(10);
+            this.labelTitleLeft.Location = new System.Drawing.Point(0, 0);
+            this.labelTitleLeft.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            this.labelTitleLeft.Name = "labelTitleLeft";
+            this.labelTitleLeft.Padding = new System.Windows.Forms.Padding(17);
+            this.labelTitleLeft.Size = new System.Drawing.Size(500, 68);
+            this.labelTitleLeft.TabIndex = 1;
             this.labelTitleLeft.Text = "CHỌN SINH VIÊN";
-            this.labelTitleLeft.Height = 40;
-            this.labelTitleLeft.BackColor = System.Drawing.Color.WhiteSmoke;
-
-            // DataGridView Sinh Viên
-            this.dgvSinhVien.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvSinhVien.RowHeadersVisible = false;
-            this.dgvSinhVien.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.dgvSinhVien.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvSinhVien.MultiSelect = false;
-            this.dgvSinhVien.BackgroundColor = System.Drawing.Color.White;
-            // Gắn sự kiện click
-            this.dgvSinhVien.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvSinhVien_CellClick);
-
             // 
-            // --- 3. CẤU HÌNH PANEL PHẢI (THÔNG TIN HỌC PHÍ) ---
+            // panelRight
             // 
-            this.panelRight.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelRight.BackColor = System.Drawing.Color.White;
-
-            // Thanh tiêu đề chứa tên SV
-            this.panelTool.Controls.Add(this.lblTenSV);
-            this.panelTool.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panelTool.Height = 60;
-            this.panelTool.BackColor = System.Drawing.Color.WhiteSmoke;
-
-            this.lblTenSV.AutoSize = true;
-            this.lblTenSV.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
-            this.lblTenSV.ForeColor = System.Drawing.Color.DarkBlue;
-            this.lblTenSV.Location = new System.Drawing.Point(20, 18);
-            this.lblTenSV.Text = "Vui lòng chọn sinh viên...";
-
-            // Cấu hình các Label hiển thị tiền
-            // Tổng học phí
-            this.lblTongHP.AutoSize = true;
-            this.lblTongHP.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
-            this.lblTongHP.Location = new System.Drawing.Point(40, 100);
-            this.lblTongHP.Text = "Tổng Học Phí: ...";
-
-            // Đã đóng (Màu xanh)
-            this.lblDaDong.AutoSize = true;
-            this.lblDaDong.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
-            this.lblDaDong.ForeColor = System.Drawing.Color.ForestGreen;
-            this.lblDaDong.Location = new System.Drawing.Point(40, 140);
-            this.lblDaDong.Text = "Đã Đóng: ...";
-
-            // Còn nợ (Màu đỏ)
-            this.lblConNo.AutoSize = true;
-            this.lblConNo.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
-            this.lblConNo.ForeColor = System.Drawing.Color.Red;
-            this.lblConNo.Location = new System.Drawing.Point(40, 180);
-            this.lblConNo.Text = "Còn Nợ: ...";
-
-            // Khu vực thanh toán
-            this.labelHuongDan.AutoSize = true;
-            this.labelHuongDan.Location = new System.Drawing.Point(40, 250);
-            this.labelHuongDan.Text = "Nhập số tiền muốn thanh toán:";
-            this.labelHuongDan.Font = new System.Drawing.Font("Arial", 10F);
-
-            this.txbSoTienDong.Location = new System.Drawing.Point(44, 280);
-            this.txbSoTienDong.Size = new System.Drawing.Size(250, 30);
-            this.txbSoTienDong.Font = new System.Drawing.Font("Arial", 12F);
-
-            this.btnXacNhanDong.Text = "THANH TOÁN";
-            this.btnXacNhanDong.Location = new System.Drawing.Point(310, 275);
-            this.btnXacNhanDong.Size = new System.Drawing.Size(120, 40);
-            this.btnXacNhanDong.BackColor = System.Drawing.Color.Teal;
-            this.btnXacNhanDong.ForeColor = System.Drawing.Color.White;
-            this.btnXacNhanDong.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold);
-            // Gắn sự kiện click nút thanh toán
-            this.btnXacNhanDong.Click += new System.EventHandler(this.btnXacNhanDong_Click);
-
-            // Add các control vào Panel Phải
             this.panelRight.Controls.Add(this.panelTool);
             this.panelRight.Controls.Add(this.lblTongHP);
             this.panelRight.Controls.Add(this.lblDaDong);
@@ -145,25 +97,124 @@
             this.panelRight.Controls.Add(this.labelHuongDan);
             this.panelRight.Controls.Add(this.txbSoTienDong);
             this.panelRight.Controls.Add(this.btnXacNhanDong);
-
+            this.panelRight.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelRight.Location = new System.Drawing.Point(500, 0);
+            this.panelRight.Margin = new System.Windows.Forms.Padding(5);
+            this.panelRight.Name = "panelRight";
+            this.panelRight.Size = new System.Drawing.Size(833, 762);
+            this.panelRight.TabIndex = 0;
             // 
-            // --- 4. CẤU HÌNH FORM CHÍNH ---
+            // panelTool
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.panelTool.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.panelTool.Controls.Add(this.lblTenSV);
+            this.panelTool.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panelTool.Location = new System.Drawing.Point(0, 0);
+            this.panelTool.Margin = new System.Windows.Forms.Padding(5);
+            this.panelTool.Name = "panelTool";
+            this.panelTool.Size = new System.Drawing.Size(833, 102);
+            this.panelTool.TabIndex = 0;
+            // 
+            // lblTenSV
+            // 
+            this.lblTenSV.AutoSize = true;
+            this.lblTenSV.Font = new System.Drawing.Font("Arial", 14F, System.Drawing.FontStyle.Bold);
+            this.lblTenSV.ForeColor = System.Drawing.Color.DarkBlue;
+            this.lblTenSV.Location = new System.Drawing.Point(33, 30);
+            this.lblTenSV.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            this.lblTenSV.Name = "lblTenSV";
+            this.lblTenSV.Size = new System.Drawing.Size(401, 37);
+            this.lblTenSV.TabIndex = 0;
+            this.lblTenSV.Text = "Vui lòng chọn sinh viên...";
+            // 
+            // lblTongHP
+            // 
+            this.lblTongHP.AutoSize = true;
+            this.lblTongHP.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.lblTongHP.Location = new System.Drawing.Point(67, 169);
+            this.lblTongHP.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            this.lblTongHP.Name = "lblTongHP";
+            this.lblTongHP.Size = new System.Drawing.Size(238, 33);
+            this.lblTongHP.TabIndex = 1;
+            this.lblTongHP.Text = "Tổng Học Phí: ...";
+            // 
+            // lblDaDong
+            // 
+            this.lblDaDong.AutoSize = true;
+            this.lblDaDong.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.lblDaDong.ForeColor = System.Drawing.Color.ForestGreen;
+            this.lblDaDong.Location = new System.Drawing.Point(67, 237);
+            this.lblDaDong.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            this.lblDaDong.Name = "lblDaDong";
+            this.lblDaDong.Size = new System.Drawing.Size(172, 33);
+            this.lblDaDong.TabIndex = 2;
+            this.lblDaDong.Text = "Đã Đóng: ...";
+            // 
+            // lblConNo
+            // 
+            this.lblConNo.AutoSize = true;
+            this.lblConNo.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.lblConNo.ForeColor = System.Drawing.Color.Red;
+            this.lblConNo.Location = new System.Drawing.Point(67, 305);
+            this.lblConNo.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            this.lblConNo.Name = "lblConNo";
+            this.lblConNo.Size = new System.Drawing.Size(159, 33);
+            this.lblConNo.TabIndex = 3;
+            this.lblConNo.Text = "Còn Nợ: ...";
+            // 
+            // labelHuongDan
+            // 
+            this.labelHuongDan.AutoSize = true;
+            this.labelHuongDan.Font = new System.Drawing.Font("Arial", 10F);
+            this.labelHuongDan.Location = new System.Drawing.Point(67, 423);
+            this.labelHuongDan.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            this.labelHuongDan.Name = "labelHuongDan";
+            this.labelHuongDan.Size = new System.Drawing.Size(317, 26);
+            this.labelHuongDan.TabIndex = 4;
+            this.labelHuongDan.Text = "Nhập số tiền muốn thanh toán:";
+            // 
+            // txbSoTienDong
+            // 
+            this.txbSoTienDong.Font = new System.Drawing.Font("Arial", 12F);
+            this.txbSoTienDong.Location = new System.Drawing.Point(73, 474);
+            this.txbSoTienDong.Margin = new System.Windows.Forms.Padding(5);
+            this.txbSoTienDong.Name = "txbSoTienDong";
+            this.txbSoTienDong.Size = new System.Drawing.Size(414, 39);
+            this.txbSoTienDong.TabIndex = 5;
+            // 
+            // btnXacNhanDong
+            // 
+            this.btnXacNhanDong.BackColor = System.Drawing.Color.Teal;
+            this.btnXacNhanDong.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold);
+            this.btnXacNhanDong.ForeColor = System.Drawing.Color.White;
+            this.btnXacNhanDong.Location = new System.Drawing.Point(517, 465);
+            this.btnXacNhanDong.Margin = new System.Windows.Forms.Padding(5);
+            this.btnXacNhanDong.Name = "btnXacNhanDong";
+            this.btnXacNhanDong.Size = new System.Drawing.Size(200, 68);
+            this.btnXacNhanDong.TabIndex = 6;
+            this.btnXacNhanDong.Text = "THANH TOÁN";
+            this.btnXacNhanDong.UseVisualStyleBackColor = false;
+            this.btnXacNhanDong.Click += new System.EventHandler(this.btnXacNhanDong_Click);
+            // 
+            // FrmHocPhi
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 22F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.panelRight); // Add Phải
-            this.Controls.Add(this.panelLeft);  // Add Trái
+            this.ClientSize = new System.Drawing.Size(1333, 762);
+            this.Controls.Add(this.panelRight);
+            this.Controls.Add(this.panelLeft);
+            this.Margin = new System.Windows.Forms.Padding(5);
             this.Name = "FrmHocPhi";
             this.Text = "Quản Lý Học Phí";
-
-            ((System.ComponentModel.ISupportInitialize)(this.dgvSinhVien)).EndInit();
+            this.Load += new System.EventHandler(this.FrmHocPhi_Load);
             this.panelLeft.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvSinhVien)).EndInit();
             this.panelRight.ResumeLayout(false);
             this.panelRight.PerformLayout();
             this.panelTool.ResumeLayout(false);
             this.panelTool.PerformLayout();
             this.ResumeLayout(false);
+
         }
 
         #endregion

@@ -4,11 +4,21 @@ namespace QuanLySinhVien.DTO
 {
     public class Account
     {
-        // Các thuộc tính khớp với bảng SQL TaiKhoan
+        // Các thuộc tính cơ bản
         public string TenDangNhap { get; set; }
-        public string MatKhau { get; set; }
-        public string Quyen { get; set; } // Admin, GiangVien, SinhVien
-        public string MaNguoiDung { get; set; } // Liên kết với SV hoặc GV
+        public string MatKhau { get; set; } // (Lưu ý: Mật khẩu nên bảo mật, nhưng ở đây ta giữ nguyên để test)
+        public string Quyen { get; set; }
+
+        // [QUAN TRỌNG] Thêm thuộc tính này để lưu mã SV/GV
+        public string MaNguoiDung { get; set; }
+
+        public Account(string userName, string passWord, string quyen, string maNguoiDung)
+        {
+            this.TenDangNhap = userName;
+            this.MatKhau = passWord;
+            this.Quyen = quyen;
+            this.MaNguoiDung = maNguoiDung;
+        }
 
         public Account(DataRow row)
         {
@@ -16,11 +26,16 @@ namespace QuanLySinhVien.DTO
             this.MatKhau = row["MatKhau"].ToString();
             this.Quyen = row["Quyen"].ToString();
 
-            // Xử lý null cho cột MaNguoiDung (vì Admin sẽ bị null)
-            if (row["MaNguoiDung"].ToString() != "")
+            // [SỬA LỖI TẠI ĐÂY]
+            // Kiểm tra xem trong SQL cột MaNguoiDung có null không trước khi lấy
+            if (row["MaNguoiDung"] != System.DBNull.Value)
+            {
                 this.MaNguoiDung = row["MaNguoiDung"].ToString();
+            }
             else
-                this.MaNguoiDung = "";
+            {
+                this.MaNguoiDung = ""; // Hoặc null tùy bạn xử lý
+            }
         }
     }
 }

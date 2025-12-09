@@ -120,7 +120,7 @@ namespace QuanLySinhVien
         private void btnSearch_Click(object sender, EventArgs e)
         {
             string keyword = txbSearch.Text.Trim();
-            dgvSinhVien.DataSource = SinhVienDAO.Instance.SearchSinhVienByName(keyword);
+            dgvSinhVien.DataSource = SinhVienDAO.Instance.SearchSinhVienByID(keyword);
         }
         private void txbSearch_TextChanged(object sender, EventArgs e)
         {

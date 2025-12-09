@@ -43,13 +43,6 @@ namespace QuanLySinhVien
 
             // 2. --- ĐOẠN CODE MỚI CẦN THÊM ---
             // Kiểm tra Mã Khoa có đúng không?
-            if (LopDAO.Instance.CheckKhoaTonTai(txbMaKhoa.Text) == false)
-            {
-                MessageBox.Show("Mã Khoa '" + txbMaKhoa.Text + "' chưa tồn tại!\nVui lòng nhập mã Khoa đúng (Ví dụ: CNTT, KT...).",
-                                "Lỗi nhập liệu", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                txbMaKhoa.Focus();
-                return; // Dừng lại ngay, không cho lỗi SQL hiện ra
-            }
             // ---------------------------------
 
             // 3. Code thêm cũ giữ nguyên (nhớ bọc try-catch để an toàn tuyệt đối)

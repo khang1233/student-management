@@ -1,192 +1,219 @@
 ﻿using System;
 using System.Windows.Forms;
 using QuanLySinhVien.DAO;
-using QuanLySinhVien.DTO;
-using System.Drawing; // Thêm thư viện này để dùng Color (Màu sắc)
+using QuanLySinhVien.DTO; // Bắt buộc có để dùng Account
+using System.Drawing;       // Bắt buộc có để dùng Color
 
 namespace QuanLySinhVien
 {
     public partial class FrmDiem : Form
     {
-        private string currentMaSV = null; // Lưu mã SV đang chọn
+        private string currentMaSV = null; // Lưu mã SV đang chọn bên trái
 
-        public FrmDiem()
+        // 1. Biến lưu tài khoản được truyền từ fMain sang
+        private Account loginAccount;
+
+        // 2. CONSTRUCTOR QUAN TRỌNG (Phải khớp với fMain)
+        public FrmDiem(Account acc)
         {
             InitializeComponent();
-            LoadDSSinhVien();
+            this.loginAccount = acc; // Nhận tài khoản và lưu lại
         }
 
-        // 1. Tải danh sách sinh viên lên cột bên trái
-        void LoadDSSinhVien()
+        // 3. Sự kiện Load Form (Chạy ngay khi mở form)
+        private void FrmDiem_Load(object sender, EventArgs e)
         {
-            dgvSinhVien.DataSource = SinhVienDAO.Instance.GetListSinhVien();
-
-            // Đặt tên tiêu đề cột
-            dgvSinhVien.Columns["MaSV"].HeaderText = "Mã SV";
-            dgvSinhVien.Columns["HoTen"].HeaderText = "Họ Tên";
-
-            // Ẩn các cột không cần thiết cho gọn giao diện
-            dgvSinhVien.Columns["NgaySinh"].Visible = false;
-            dgvSinhVien.Columns["GioiTinh"].Visible = false;
-            dgvSinhVien.Columns["DiaChi"].Visible = false;
-            dgvSinhVien.Columns["SoDienThoai"].Visible = false;
-            dgvSinhVien.Columns["Email"].Visible = false;
-            dgvSinhVien.Columns["MaLop"].Visible = false;
+            PhanQuyen();      // Ẩn nút nếu là sinh viên
+            LoadDSSinhVien(); // Tải danh sách SV phù hợp
         }
 
-        // 2. Sự kiện khi click vào tên sinh viên
-        private void dgvSinhVien_CellClick(object sender, DataGridViewCellEventArgs e)
+        // --- LOGIC PHÂN QUYỀN ---
+        void PhanQuyen()
         {
-            if (e.RowIndex >= 0)
+            string quyen = loginAccount.Quyen.Trim().ToLower();
+
+            // Nếu là SINH VIÊN -> Chỉ được xem, không được sửa
+            if (quyen == "sinhvien" || quyen == "sv")
             {
-                // Lấy đối tượng SinhVien từ dòng được chọn
-                SinhVien sv = (SinhVien)dgvSinhVien.Rows[e.RowIndex].DataBoundItem;
+                btnSave.Visible = false;     // Ẩn nút Lưu
+                dgvBangDiem.ReadOnly = true; // Chặn sửa trên lưới
 
-                currentMaSV = sv.MaSV;
-                lblTenSV.Text = "Bảng điểm của: " + sv.HoTen;
-
-                // Tải bảng điểm và tính toán thống kê ngay lập tức
-                LoadBangDiem(currentMaSV);
+                // Ẩn thêm các nút Thêm/Xóa nếu có
+                if (Controls.ContainsKey("btnThem")) Controls["btnThem"].Visible = false;
+                if (Controls.ContainsKey("btnXoa")) Controls["btnXoa"].Visible = false;
+            }
+            // Nếu là GIÁO VIÊN -> Được phép sửa
+            else
+            {
+                btnSave.Visible = true;
+                dgvBangDiem.ReadOnly = false;
             }
         }
 
-        // 3. Tải bảng điểm của sinh viên được chọn
+        // --- LOGIC TẢI DANH SÁCH SINH VIÊN ---
+        void LoadDSSinhVien()
+        {
+            string quyen = loginAccount.Quyen.Trim().ToLower();
+
+            // --- PHÂN QUYỀN ---
+            if (quyen == "sinhvien" || quyen == "sv")
+            {
+                // [THAY ĐỔI Ở ĐÂY]
+                dgvSinhVien.Visible = true; // Hiện danh sách
+
+                // Chỉ load 1 dòng là chính sinh viên đó
+                dgvSinhVien.DataSource = SinhVienDAO.Instance.SearchSinhVienByID(loginAccount.MaNguoiDung);
+
+                // Load luôn bảng điểm của sinh viên này
+                if (!string.IsNullOrEmpty(loginAccount.MaNguoiDung))
+                {
+                    LoadBangDiem(loginAccount.MaNguoiDung);
+                    lblTenSV.Text = "Bảng điểm cá nhân";
+                }
+            }
+            else
+            {
+                // Admin: Load tất cả
+                dgvSinhVien.Visible = true;
+                dgvSinhVien.DataSource = SinhVienDAO.Instance.GetListSinhVien();
+                lblTenSV.Text = "Vui lòng chọn sinh viên...";
+            }
+
+            // Gọi hàm setup cột (đảm bảo hàm này nằm cuối để không bị lỗi null)
+            SetupDataGridView();
+        }
+
+        void SetupDataGridView()
+        {
+            if (dgvSinhVien.Columns["MaSV"] != null)
+            {
+                dgvSinhVien.Columns["MaSV"].HeaderText = "Mã SV";
+                dgvSinhVien.Columns["HoTen"].HeaderText = "Họ Tên";
+
+                // Ẩn các cột không cần thiết
+                string[] cotAn = { "NgaySinh", "GioiTinh", "DiaChi", "SoDienThoai", "Email", "MaLop", "HinhAnh", "TrangThai" };
+                foreach (string cot in cotAn)
+                {
+                    if (dgvSinhVien.Columns[cot] != null)
+                        dgvSinhVien.Columns[cot].Visible = false;
+                }
+            }
+        }
+
+        // --- CÁC SỰ KIỆN CŨ (GIỮ NGUYÊN) ---
+
+        // Khi click vào sinh viên bên trái
+        // Sự kiện khi click vào danh sách sinh viên bên trái
+        private void dgvSinhVien_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // Kiểm tra dòng hợp lệ (không click vào tiêu đề)
+            if (e.RowIndex >= 0)
+            {
+                try
+                {
+                    // CÁCH SỬA: Lấy trực tiếp giá trị từ ô "MaSV"
+                    // Đảm bảo cột MaSV trong DataGridView của bạn có Name là "MaSV"
+                    DataGridViewRow row = dgvSinhVien.Rows[e.RowIndex];
+
+                    // Kiểm tra null để tránh lỗi
+                    if (row.Cells["MaSV"].Value != null)
+                    {
+                        currentMaSV = row.Cells["MaSV"].Value.ToString();
+                        string tenSV = row.Cells["HoTen"].Value.ToString();
+
+                        // Cập nhật giao diện
+                        lblTenSV.Text = "Bảng điểm của: " + tenSV;
+
+                        // Tải bảng điểm ngay lập tức
+                        LoadBangDiem(currentMaSV);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi chọn sinh viên: " + ex.Message);
+                }
+            }
+        }
+
+        // Tải bảng điểm
         void LoadBangDiem(string maSV)
         {
             dgvBangDiem.DataSource = KetQuaDAO.Instance.GetListKetQuaByMaSV(maSV);
 
-            // Cấu hình hiển thị bảng điểm
-            dgvBangDiem.Columns["TenMon"].HeaderText = "Môn Học";
-            dgvBangDiem.Columns["TenMon"].ReadOnly = true; // Không cho sửa tên môn
-
-            dgvBangDiem.Columns["MaMon"].Visible = false; // Ẩn mã môn đi
-
-            dgvBangDiem.Columns["DiemQT"].HeaderText = "Điểm QT (30%)";
-            dgvBangDiem.Columns["DiemThi"].HeaderText = "Điểm Thi (70%)";
-
-            dgvBangDiem.Columns["DiemTongKet"].HeaderText = "Tổng Kết";
-            dgvBangDiem.Columns["DiemTongket"].ReadOnly = true; // Tổng kết tự tính, cấm sửa
-
-            // --- QUAN TRỌNG: Gọi hàm tính thống kê ngay khi dữ liệu đổ về ---
+            // Cấu hình hiển thị
+            if (dgvBangDiem.Columns["TenMon"] != null)
+            {
+                dgvBangDiem.Columns["TenMon"].HeaderText = "Môn Học";
+                dgvBangDiem.Columns["TenMon"].ReadOnly = true;
+                dgvBangDiem.Columns["MaMon"].Visible = false;
+                dgvBangDiem.Columns["DiemQT"].HeaderText = "Điểm QT (30%)";
+                dgvBangDiem.Columns["DiemThi"].HeaderText = "Điểm Thi (70%)";
+                dgvBangDiem.Columns["DiemTongKet"].HeaderText = "Tổng Kết";
+                dgvBangDiem.Columns["DiemTongKet"].ReadOnly = true;
+            }
             TinhVaHienThiThongKe();
         }
 
-        // 4. Sự kiện bấm nút Lưu
+        // Lưu điểm
         private void btnSave_Click(object sender, EventArgs e)
         {
-            if (currentMaSV == null)
-            {
-                MessageBox.Show("Chưa chọn sinh viên nào!");
-                return;
-            }
+            if (currentMaSV == null) { MessageBox.Show("Chưa chọn sinh viên!"); return; }
 
             try
             {
-                // Duyệt qua từng dòng trong bảng điểm để lưu
                 foreach (DataGridViewRow row in dgvBangDiem.Rows)
                 {
-                    // Chỉ xử lý những dòng có Mã Môn (tránh dòng trống cuối cùng của GridView)
                     if (row.Cells["MaMon"].Value != null)
                     {
                         string maMon = row.Cells["MaMon"].Value.ToString();
+                        double dQT = 0, dThi = 0;
 
-                        // Parse an toàn (nếu ô rỗng thì coi như là 0 hoặc xử lý tùy ý)
-                        double dQT = 0;
-                        double dThi = 0;
+                        if (row.Cells["DiemQT"].Value != null) double.TryParse(row.Cells["DiemQT"].Value.ToString(), out dQT);
+                        if (row.Cells["DiemThi"].Value != null) double.TryParse(row.Cells["DiemThi"].Value.ToString(), out dThi);
 
-                        if (row.Cells["DiemQT"].Value != null)
-                            double.TryParse(row.Cells["DiemQT"].Value.ToString(), out dQT);
-
-                        if (row.Cells["DiemThi"].Value != null)
-                            double.TryParse(row.Cells["DiemThi"].Value.ToString(), out dThi);
-
-                        // Gọi DAO lưu xuống SQL
                         KetQuaDAO.Instance.SaveDiem(currentMaSV, maMon, dQT, dThi);
                     }
                 }
-
-                MessageBox.Show("Lưu bảng điểm thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                // Tải lại để cập nhật điểm tổng kết mới và thống kê lại
+                MessageBox.Show("Lưu thành công!");
                 LoadBangDiem(currentMaSV);
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi nhập liệu: " + ex.Message + "\n(Điểm phải là số!)");
-            }
+            catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message); }
         }
 
-        // 5. Hàm tính toán GPA và Xếp loại (Logic cốt lõi)
+        // Tính điểm trung bình
         private void TinhVaHienThiThongKe()
         {
             double tongDiem = 0;
-            int soMonCoDiem = 0;
+            int soMon = 0;
 
-            // Duyệt qua từng dòng trong GridView
             foreach (DataGridViewRow row in dgvBangDiem.Rows)
             {
-                // Kiểm tra dòng dữ liệu hợp lệ
                 if (row.Cells["DiemTongKet"].Value != null &&
-                    double.TryParse(row.Cells["DiemTongKet"].Value.ToString(), out double diemTK))
+                    double.TryParse(row.Cells["DiemTongKet"].Value.ToString(), out double dtb))
                 {
-                    // Chỉ tính những môn đã có điểm (Khác 0) để tính trung bình chính xác
-                    // (Hoặc tùy quy định: chưa có điểm tính là 0 hay không tính)
-                    if (diemTK > 0)
-                    {
-                        tongDiem += diemTK;
-                        soMonCoDiem++;
-                    }
+                    if (dtb > 0) { tongDiem += dtb; soMon++; }
                 }
             }
 
-            // Tránh lỗi chia cho 0
-            if (soMonCoDiem > 0)
+            if (soMon > 0)
             {
-                double diemTrungBinh = tongDiem / soMonCoDiem;
-                diemTrungBinh = Math.Round(diemTrungBinh, 2); // Làm tròn 2 số lẻ
+                double final = Math.Round(tongDiem / soMon, 2);
+                lblDiemTB.Text = "Điểm TK: " + final;
 
-                // Hiển thị điểm TB
-                lblDiemTB.Text = "Điểm TK: " + diemTrungBinh.ToString();
+                string xl = ""; Color c = Color.Black;
+                if (final >= 9) { xl = "Xuất Sắc"; c = Color.Green; }
+                else if (final >= 8) { xl = "Giỏi"; c = Color.ForestGreen; }
+                else if (final >= 6.5) { xl = "Khá"; c = Color.Blue; }
+                else if (final >= 5) { xl = "Trung Bình"; c = Color.Orange; }
+                else { xl = "Yếu"; c = Color.Red; }
 
-                // Logic Xếp loại
-                string xepLoai = "";
-                Color mauSac = Color.Black;
-
-                if (diemTrungBinh >= 9.0)
-                {
-                    xepLoai = "Xuất Sắc";
-                    mauSac = Color.Green;
-                }
-                else if (diemTrungBinh >= 8.0)
-                {
-                    xepLoai = "Giỏi";
-                    mauSac = Color.ForestGreen;
-                }
-                else if (diemTrungBinh >= 6.5)
-                {
-                    xepLoai = "Khá";
-                    mauSac = Color.Blue;
-                }
-                else if (diemTrungBinh >= 5.0)
-                {
-                    xepLoai = "Trung Bình";
-                    mauSac = Color.Orange;
-                }
-                else
-                {
-                    xepLoai = "Yếu";
-                    mauSac = Color.Red;
-                }
-
-                lblXepLoai.Text = "Xếp loại: " + xepLoai;
-                lblXepLoai.ForeColor = mauSac;
+                lblXepLoai.Text = "Xếp loại: " + xl;
+                lblXepLoai.ForeColor = c;
             }
             else
             {
-                // Trường hợp SV chưa có điểm môn nào
                 lblDiemTB.Text = "Điểm TK: ...";
-                lblXepLoai.Text = "Xếp loại: Chưa có điểm";
-                lblXepLoai.ForeColor = Color.Gray;
+                lblXepLoai.Text = "Chưa có điểm";
             }
         }
     }

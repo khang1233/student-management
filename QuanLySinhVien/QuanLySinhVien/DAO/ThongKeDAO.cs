@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QuanLySinhVien.DTO;
+using System;
 using System.Data;
 
 namespace QuanLySinhVien.DAO
@@ -6,37 +7,34 @@ namespace QuanLySinhVien.DAO
     public class ThongKeDAO
     {
         private static ThongKeDAO instance;
-
         public static ThongKeDAO Instance
         {
-            get { if (instance == null) instance = new ThongKeDAO(); return ThongKeDAO.instance; }
-            private set { ThongKeDAO.instance = value; }
+            get { if (instance == null) instance = new ThongKeDAO(); return instance; }
+            private set { instance = value; }
         }
-
         private ThongKeDAO() { }
 
         // 1. Tổng sinh viên
         public int GetTongSinhVien()
         {
-            try { return (int)DataProvider.Instance.ExecuteScalar("SELECT COUNT(*) FROM SINHVIEN"); }
+            try { return (int)DataProvider.Instance.ExecuteScalar("SELECT COUNT(*) FROM SinhVien"); }
             catch { return 0; }
         }
 
         // 2. Tổng lớp
         public int GetTongLop()
         {
-            try { return (int)DataProvider.Instance.ExecuteScalar("SELECT COUNT(*) FROM LOP"); }
+            try { return (int)DataProvider.Instance.ExecuteScalar("SELECT COUNT(*) FROM Lop"); }
             catch { return 0; }
         }
 
-        // 3. [ĐÃ SỬA LẠI] Cảnh báo học vụ: Đếm số lượng SINH VIÊN (không đếm trùng)
+        // 3. Số cảnh báo học vụ (Giả sử: Sinh viên có điểm tổng kết môn nào đó < 4)
         public int GetSoCanhBaoHocVu()
         {
             try
             {
-                // Thêm chữ DISTINCT MaSV để chỉ đếm mỗi sinh viên 1 lần duy nhất
-                string query = "SELECT COUNT(DISTINCT MaSV) FROM KETQUA WHERE DiemTongKet < 4.0";
-
+                // Đếm số sinh viên có ít nhất 1 môn điểm trung bình < 4.0
+                string query = "SELECT COUNT(DISTINCT MaSV) FROM KetQua WHERE (ISNULL(DiemLan1,0)*0.3 + ISNULL(DiemLan2,0)*0.7) < 4.0";
                 return (int)DataProvider.Instance.ExecuteScalar(query);
             }
             catch { return 0; }
@@ -47,58 +45,90 @@ namespace QuanLySinhVien.DAO
         {
             try
             {
-                int soNu = (int)DataProvider.Instance.ExecuteScalar("SELECT COUNT(*) FROM SINHVIEN WHERE GioiTinh = N'Nữ'");
-                int tongSV = GetTongSinhVien();
-                if (tongSV == 0) return "Chưa có dữ liệu";
-                double phanTramNu = Math.Round((double)soNu * 100 / tongSV, 1);
-                double phanTramNam = 100 - phanTramNu;
-                return $"{phanTramNam}% Nam{Environment.NewLine}{phanTramNu}% Nữ";
+                int nam = (int)DataProvider.Instance.ExecuteScalar("SELECT COUNT(*) FROM SinhVien WHERE GioiTinh = N'Nam'");
+                int nu = (int)DataProvider.Instance.ExecuteScalar("SELECT COUNT(*) FROM SinhVien WHERE GioiTinh = N'Nữ'");
+
+                int tong = nam + nu;
+                if (tong == 0) return "0% / 0%";
+
+                double phanTramNam = Math.Round((double)nam / tong * 100, 1);
+                double phanTramNu = 100 - phanTramNam;
+
+                return $"{phanTramNam}% / {phanTramNu}%";
             }
-            catch { return "Lỗi Data"; }
+            catch { return "0% / 0%"; }
         }
 
-
-        // 5. Thống kê Học lực (Cho biểu đồ tròn)
+        // 5. Phân bố học lực (Cho biểu đồ tròn)
         public DataTable GetPhanBoHocLuc()
+        {
+            // Logic: Tính ĐTB của từng SV -> Xếp loại -> Đếm số lượng theo loại
+            // Query này hơi phức tạp một chút để chạy 1 lần lấy hết dữ liệu
+            string query = @"
+                SELECT XepLoai, COUNT(*) as SoLuong
+                FROM (
+                    SELECT 
+                        CASE 
+                            WHEN AVG(ISNULL(DiemLan1,0)*0.3 + ISNULL(DiemLan2,0)*0.7) >= 8.5 THEN N'Xuất sắc'
+                            WHEN AVG(ISNULL(DiemLan1,0)*0.3 + ISNULL(DiemLan2,0)*0.7) >= 8.0 THEN N'Giỏi'
+                            WHEN AVG(ISNULL(DiemLan1,0)*0.3 + ISNULL(DiemLan2,0)*0.7) >= 6.5 THEN N'Khá'
+                            WHEN AVG(ISNULL(DiemLan1,0)*0.3 + ISNULL(DiemLan2,0)*0.7) >= 5.0 THEN N'Trung bình'
+                            ELSE N'Yếu'
+                        END as XepLoai
+                    FROM KetQua
+                    GROUP BY MaSV
+                ) as BangXepLoai
+                GROUP BY XepLoai";
+
+            return DataProvider.Instance.ExecuteQuery(query);
+        }
+
+        // 6. Số lượng SV theo Khoa (Cho biểu đồ cột)
+        public DataTable GetSinhVienTheoKhoa()
+        {
+            string query = @"
+                SELECT k.TenKhoa, COUNT(sv.MaSV) as SoLuong
+                FROM Khoa k
+                LEFT JOIN Lop l ON k.MaKhoa = l.MaKhoa
+                LEFT JOIN SinhVien sv ON l.MaLop = sv.MaLop
+                GROUP BY k.TenKhoa";
+            return DataProvider.Instance.ExecuteQuery(query);
+        }
+
+        // 7. Top Sinh viên tiêu biểu (Cho DataGridView)
+        public DataTable GetTopSinhVien()
+        {
+            // Lấy Top 5 sinh viên có điểm trung bình cao nhất
+            string query = @"
+                SELECT TOP 5 
+                    sv.MaSV, 
+                    sv.HoTen, 
+                    k.TenKhoa,
+                    ROUND(AVG(ISNULL(kq.DiemLan1,0)*0.3 + ISNULL(kq.DiemLan2,0)*0.7), 2) as DiemTB
+                FROM SinhVien sv
+                JOIN Lop l ON sv.MaLop = l.MaLop
+                JOIN Khoa k ON l.MaKhoa = k.MaKhoa
+                LEFT JOIN KetQua kq ON sv.MaSV = kq.MaSV
+                GROUP BY sv.MaSV, sv.HoTen, k.TenKhoa
+                ORDER BY DiemTB DESC";
+            return DataProvider.Instance.ExecuteQuery(query);
+        }
+
+        // 8. Tìm kiếm sinh viên (Cho ô Search)
+        public DataTable TimKiemSinhVien(string keyword)
         {
             string query = @"
                 SELECT 
-                    CASE 
-                        WHEN DiemTongKet >= 8.0 THEN N'Giỏi'
-                        WHEN DiemTongKet >= 6.5 THEN N'Khá'
-                        WHEN DiemTongKet >= 5.0 THEN N'Trung bình'
-                        ELSE N'Yếu'
-                    END as XepLoai,
-                    COUNT(MaSV) as SoLuong
-                FROM KETQUA
-                GROUP BY 
-                    CASE 
-                        WHEN DiemTongKet >= 8.0 THEN N'Giỏi'
-                        WHEN DiemTongKet >= 6.5 THEN N'Khá'
-                        WHEN DiemTongKet >= 5.0 THEN N'Trung bình'
-                        ELSE N'Yếu'
-                    END";
-            return DataProvider.Instance.ExecuteQuery(query);
-        }
-
-        // 6. Số lượng SV theo Khoa
-        public DataTable GetSinhVienTheoKhoa()
-        {
-            string query = "SELECT k.TenKhoa, COUNT(s.MaSV) as SoLuong FROM KHOA k JOIN LOP l ON k.MaKhoa = l.MaKhoa JOIN SINHVIEN s ON l.MaLop = s.MaLop GROUP BY k.TenKhoa";
-            return DataProvider.Instance.ExecuteQuery(query);
-        }
-
-        // 7. Top 5 Sinh viên
-        public DataTable GetTopSinhVien()
-        {
-            string query = "SELECT TOP 5 s.MaSV, s.HoTen, k.TenKhoa, ROUND(ISNULL(AVG(kq.DiemTongKet), 0), 2) as DiemTB FROM SINHVIEN s JOIN LOP l ON s.MaLop = l.MaLop JOIN KHOA k ON l.MaKhoa = k.MaKhoa LEFT JOIN KETQUA kq ON s.MaSV = kq.MaSV GROUP BY s.MaSV, s.HoTen, k.TenKhoa ORDER BY DiemTB DESC";
-            return DataProvider.Instance.ExecuteQuery(query);
-        }
-
-        // 8. Tìm kiếm
-        public DataTable TimKiemSinhVien(string keyword)
-        {
-            string query = "SELECT s.MaSV, s.HoTen, k.TenKhoa, ROUND(ISNULL(AVG(kq.DiemTongKet), 0), 2) as DiemTB FROM SINHVIEN s JOIN LOP l ON s.MaLop = l.MaLop JOIN KHOA k ON l.MaKhoa = k.MaKhoa LEFT JOIN KETQUA kq ON s.MaSV = kq.MaSV WHERE s.MaSV LIKE '%" + keyword + "%' OR s.HoTen LIKE N'%" + keyword + "%' GROUP BY s.MaSV, s.HoTen, k.TenKhoa";
+                    sv.MaSV, 
+                    sv.HoTen, 
+                    k.TenKhoa,
+                    ISNULL(ROUND(AVG(ISNULL(kq.DiemLan1,0)*0.3 + ISNULL(kq.DiemLan2,0)*0.7), 2), 0) as DiemTB
+                FROM SinhVien sv
+                JOIN Lop l ON sv.MaLop = l.MaLop
+                JOIN Khoa k ON l.MaKhoa = k.MaKhoa
+                LEFT JOIN KetQua kq ON sv.MaSV = kq.MaSV
+                WHERE sv.HoTen LIKE N'%" + keyword + "%' OR sv.MaSV LIKE '%" + keyword + "%'" +
+                "GROUP BY sv.MaSV, sv.HoTen, k.TenKhoa";
             return DataProvider.Instance.ExecuteQuery(query);
         }
     }

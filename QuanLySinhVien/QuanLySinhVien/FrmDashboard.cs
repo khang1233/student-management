@@ -372,7 +372,10 @@ namespace QuanLySinhVien
 
         private void BtnGrades_Click(object sender, EventArgs e)
         {
-            FrmDiem f = new FrmDiem();
+            // SỬA: Truyền AppSession.CurrentUser vào Constructor
+            // (Đảm bảo bạn đã có class Utilities/AppSession như các bước trước)
+            FrmDiem f = new FrmDiem(QuanLySinhVien.Utilities.AppSession.CurrentUser);
+
             if (f.ShowDialog() == DialogResult.OK)
             {
                 this.Controls.Clear();

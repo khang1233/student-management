@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
-using QuanLySinhVien.DAO; // Để dùng AccountDAO
-using QuanLySinhVien.DTO; // [QUAN TRỌNG] Để dùng class Account
+using QuanLySinhVien.DAO;
+using QuanLySinhVien.DTO; // Bắt buộc để dùng Account
+using QuanLySinhVien.Utilities; // Bắt buộc để dùng AppSession
 
 namespace QuanLySinhVien
 {
@@ -12,74 +13,73 @@ namespace QuanLySinhVien
             InitializeComponent();
         }
 
-        // 1. Nút Thoát
+        // Nút Thoát
         private void btnClose_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Bạn có thật sự muốn thoát chương trình?", "Thông báo", MessageBoxButtons.OKCancel) == DialogResult.OK)
+            if (MessageBox.Show("Bạn có thật sự muốn thoát chương trình?",
+                "Thông báo", MessageBoxButtons.OKCancel) == DialogResult.OK)
             {
                 Application.Exit();
             }
         }
 
-        // 2. Nút Đăng Nhập
+        // Nút Đăng nhập
         private void btnLogin_Click(object sender, EventArgs e)
         {
             string userName = txbUserName.Text;
             string passWord = txbPassWord.Text;
 
-            // --- BƯỚC 1: LẤY VAI TRÒ TỪ RADIO BUTTON ---
+            // 1. Lấy vai trò từ RadioButton
             string role = "";
 
-            // LƯU Ý QUAN TRỌNG: Giá trị gán cho biến 'role' phải GIỐNG HỆT trong Database
             if (rdoAdmin.Checked)
-            {
                 role = "Admin";
-            }
             else if (rdoGiaoVien.Checked)
-            {
-                // SỬA: Thay "gv" thành "GiangVien" (Theo hình Database bạn gửi)
                 role = "GiangVien";
-            }
             else if (rdoHocSinh.Checked)
-            {
-                // SỬA: Thay "SV" thành "SinhVien" (Theo hình Database bạn gửi)
                 role = "SinhVien";
-            }
 
-            // Kiểm tra nếu người dùng quên chọn vai trò
+            // Kiểm tra chọn vai trò
             if (string.IsNullOrEmpty(role))
             {
-                MessageBox.Show("Vui lòng chọn vai trò đăng nhập (Admin, Giáo viên, hoặc Học sinh)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Vui lòng chọn vai trò đăng nhập!",
+                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Kiểm tra nhập thiếu tài khoản/mật khẩu
+            // Kiểm tra tài khoản và mật khẩu
             if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(passWord))
             {
-                MessageBox.Show("Vui lòng nhập đầy đủ tài khoản và mật khẩu!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Vui lòng nhập đầy đủ tài khoản và mật khẩu!",
+                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             try
             {
-                // --- BƯỚC 2: GỌI HÀM LOGIN ---
-                // Hàm này sẽ kiểm tra: User + Pass + Role có khớp trong SQL không
+                // 2. GỌI HÀM LOGIN
                 if (AccountDAO.Instance.Login(userName, passWord, role))
                 {
-                    // --- BƯỚC 3: LẤY THÔNG TIN TÀI KHOẢN ---
+                    // 3. LẤY ĐỐI TƯỢNG ACCOUNT
                     Account loginAccount = AccountDAO.Instance.GetAccountByUserName(userName);
 
-                    // --- BƯỚC 4: MỞ FORM MAIN ---
-                    // Truyền tài khoản sang fMain để phân quyền
-                    fMain f = new fMain(loginAccount);
+                    // 4. ✔ FIX QUAN TRỌNG NHẤT
+                    AppSession.CurrentUser = loginAccount;
 
+                    // 5. MỞ FORM MAIN (truyền account luôn)
+                    fMain f = new fMain(loginAccount);
                     this.Hide();
                     f.ShowDialog();
                     this.Show();
                 }
                 else
                 {
-                    MessageBox.Show("Đăng nhập thất bại!\nCó thể do:\n1. Sai tên đăng nhập/mật khẩu.\n2. Bạn chọn sai VAI TRÒ (Ví dụ: Tài khoản SV nhưng lại chọn Giáo viên).", "Lỗi đăng nhập", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Đăng nhập thất bại!\nCó thể do:\n" +
+                                    "• Sai tên đăng nhập hoặc mật khẩu.\n" +
+                                    "• Bạn đã chọn sai vai trò.",
+                                    "Lỗi đăng nhập",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)

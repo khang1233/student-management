@@ -1,4 +1,4 @@
-﻿namespace QuanLySinhVien
+﻿namespace QuanLyTrungTam
 {
     partial class FrmDashboard
     {
@@ -106,7 +106,7 @@
             this.lblDoanhThu.Size = new System.Drawing.Size(104, 35);
             this.lblDoanhThu.TabIndex = 0;
             this.lblDoanhThu.Text = "0 VNĐ";
-            this.lblDoanhThu.Click += new System.EventHandler(this.lblDoanhThu_Click);
+       
             // 
             // label5
             // 
@@ -129,7 +129,7 @@
             this.labelWelcome.Size = new System.Drawing.Size(781, 40);
             this.labelWelcome.TabIndex = 3;
             this.labelWelcome.Text = "Chào mừng đến với Hệ thống Quản lý Sinh viên";
-            this.labelWelcome.Click += new System.EventHandler(this.labelWelcome_Click);
+           // this.labelWelcome.Click += new System.EventHandler(this.labelWelcome_Click);
             // 
             // FrmDashboard
             // 
@@ -140,7 +140,7 @@
             this.Controls.Add(this.labelWelcome);
             this.Name = "FrmDashboard";
             this.Text = "Trang Chủ";
-            this.Load += new System.EventHandler(this.FrmDashboard_Load);
+         //   this.Load += new System.EventHandler(this.FrmDashboard_Load);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);

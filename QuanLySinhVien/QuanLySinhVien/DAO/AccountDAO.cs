@@ -1,7 +1,8 @@
-﻿using QuanLySinhVien.DTO;
+﻿using QuanLyTrungTam.DTO;
+using System;
 using System.Data;
 
-namespace QuanLySinhVien.DAO
+namespace QuanLyTrungTam.DAO
 {
     public class AccountDAO
     {
@@ -50,6 +51,30 @@ namespace QuanLySinhVien.DAO
         {
             string query = "INSERT INTO TaiKhoan (TenDangNhap, MatKhau, Quyen, MaNguoiDung) VALUES ( @user , @pass , @quyen , @maND )";
             return DataProvider.Instance.ExecuteNonQuery(query, new object[] { user, pass, quyen, maNguoiDung }) > 0;
+        }
+        // Trong class AccountDAO
+        public bool LoginGoogle(string email)
+        {
+            // 1. Check tồn tại
+            string queryCheck = "SELECT * FROM TaiKhoan WHERE TenDangNhap = '" + email + "'";
+            DataTable result = DataProvider.Instance.ExecuteQuery(queryCheck);
+
+            if (result.Rows.Count > 0) return true; // Đã có -> Login luôn
+
+            // 2. Chưa có -> Auto Register
+            // Tạo mã HV tự động: HV + TikTak thời gian để không trùng
+            string maHV = "HV" + DateTime.Now.Ticks.ToString().Substring(12);
+
+            // Insert Học Viên (Lấy email làm tên tạm)
+            string queryHV = string.Format("INSERT INTO HocVien (MaHV, HoTen, Email, NgayGiaNhap) VALUES ('{0}', N'{1}', '{2}', GETDATE())",
+                                            maHV, email, email);
+            DataProvider.Instance.ExecuteNonQuery(queryHV);
+
+            // Insert Tài Khoản (Mật khẩu để NULL hoặc random string)
+            string queryTK = string.Format("INSERT INTO TaiKhoan (TenDangNhap, Quyen, MaNguoiDung, IsGoogleAccount) VALUES ('{0}', 'HocVien', '{1}', 1)",
+                                            email, maHV);
+
+            return DataProvider.Instance.ExecuteNonQuery(queryTK) > 0;
         }
     }
 }

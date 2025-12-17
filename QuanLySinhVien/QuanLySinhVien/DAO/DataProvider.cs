@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.SqlClient; // Thư viện để kết nối SQL
 using System.Linq;
 
-namespace QuanLySinhVien.DAO
+namespace QuanLyTrungTam.DAO
 {
     public class DataProvider
     {
@@ -21,7 +21,7 @@ namespace QuanLySinhVien.DAO
         // --- CHUỖI KẾT NỐI (QUAN TRỌNG NHẤT) ---
         // Đã sửa thành LocalDB theo đúng máy của bạn
         // Lưu ý: Phải giữ nguyên dấu @ ở phía trước dấu ngoặc kép
-        private string connectionSTR = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=QuanLySinhVien;Integrated Security=True;Encrypt=False";
+        private string connectionSTR = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=QuanLyTrungTam;Integrated Security=True;Encrypt=False";
 
         // 1. Hàm chạy câu lệnh SELECT (Lấy dữ liệu dạng bảng)
         public DataTable ExecuteQuery(string query, object[] parameter = null)

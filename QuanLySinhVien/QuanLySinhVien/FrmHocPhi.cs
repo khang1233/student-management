@@ -1,193 +1,145 @@
 ﻿using System;
-using System.Data;
+using System.Drawing;
 using System.Windows.Forms;
-using QuanLySinhVien.DAO;
-using QuanLySinhVien.DTO;
+using QuanLyTrungTam.DAO;
+using QuanLyTrungTam.DTO;
 
-namespace QuanLySinhVien
+namespace QuanLyTrungTam
 {
     public partial class FrmHocPhi : Form
     {
-        // 1. Biến lưu mã SV đang chọn
-        private string currentMaSV = null;
+        private string currentMaHV;
 
-        // 2. Biến lưu tài khoản đăng nhập (Được truyền từ fMain)
-        private Account loginAccount;
-
-        // 3. Constructor nhận Account
-        public FrmHocPhi(Account acc)
+        public FrmHocPhi(string maHV)
         {
+            // 1. Gọi hàm khởi tạo từ file Designer (Code bạn gửi nằm ở đây)
             InitializeComponent();
-            this.loginAccount = acc;
+
+            this.currentMaHV = maHV;
+
+            // 2. Setup giao diện và load dữ liệu
+            SetupUI();
+            LoadThongTinHocPhi();
         }
 
-        // 4. Sự kiện khi Form bắt đầu chạy
-        private void FrmHocPhi_Load(object sender, EventArgs e)
+        // --- HÀM TRANG TRÍ GIAO DIỆN ---
+        private void SetupUI()
         {
-            // In ra mã người dùng để kiểm tra
-           // MessageBox.Show("Quyền: " + loginAccount.Quyen + "\nID: " + loginAccount.MaNguoiDung);
+            this.BackColor = Color.White;
+            this.Font = new Font("Segoe UI", 10F);
 
-            LoadGiaoDienTheoQuyen();
+            // Tạo Panel chứa thông tin
+            Panel pnlInfo = new Panel { Dock = DockStyle.Top, Height = 100, BackColor = Color.WhiteSmoke };
+            this.Controls.Add(pnlInfo);
+
+            // Định dạng các Label
+            StyleLabel(lblTongHP, pnlInfo, 20, Color.Blue);
+            StyleLabel(lblDaDong, pnlInfo, 300, Color.Green);
+            StyleLabel(lblConNo, pnlInfo, 580, Color.Red);
+
+            // Label tên SV
+            lblTenSV.Parent = pnlInfo;
+            lblTenSV.Location = new Point(20, 60);
+            lblTenSV.Font = new Font("Segoe UI", 10F, FontStyle.Italic);
+            lblTenSV.ForeColor = Color.Gray;
+
+            // Định dạng GridView
+            dgvSinhVien.Dock = DockStyle.Fill;
+            dgvSinhVien.BackgroundColor = Color.White;
+            dgvSinhVien.BorderStyle = BorderStyle.None;
+            dgvSinhVien.EnableHeadersVisualStyles = false;
+            dgvSinhVien.ColumnHeadersDefaultCellStyle.BackColor = ColorTranslator.FromHtml("#3F51B5");
+            dgvSinhVien.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgvSinhVien.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvSinhVien.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+
+            // Panel chứa Grid
+            Panel pnlGrid = new Panel { Dock = DockStyle.Top, Height = 250 };
+            pnlGrid.Controls.Add(dgvSinhVien);
+            this.Controls.Add(pnlGrid);
+            pnlGrid.BringToFront();
+            pnlInfo.SendToBack();
+
+            // Panel Footer (Nút bấm)
+            Panel pnlAction = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
+            this.Controls.Add(pnlAction);
+            pnlAction.BringToFront();
+
+            // TextBox & Button
+            txbSoTienDong.Parent = pnlAction;
+            txbSoTienDong.Location = new Point(20, 20);
+            txbSoTienDong.Size = new Size(200, 30);
+
+            btnXacNhanDong.Parent = pnlAction;
+            btnXacNhanDong.Location = new Point(240, 18);
+            btnXacNhanDong.Size = new Size(150, 32);
+            btnXacNhanDong.BackColor = ColorTranslator.FromHtml("#28A745");
+            btnXacNhanDong.ForeColor = Color.White;
+            btnXacNhanDong.FlatStyle = FlatStyle.Flat;
+            btnXacNhanDong.FlatAppearance.BorderSize = 0;
         }
 
-        // --- HÀM XỬ LÝ LOGIC PHÂN QUYỀN ---
-        void LoadGiaoDienTheoQuyen()
+        private void StyleLabel(Label lbl, Panel parent, int x, Color color)
         {
-            string quyen = loginAccount.Quyen.Trim().ToLower();
-
-            // TRƯỜNG HỢP: SINH VIÊN
-            if (quyen == "sinhvien" || quyen == "sv")
-            {
-                // Tự động lấy mã SV từ tài khoản đăng nhập
-                currentMaSV = loginAccount.MaNguoiDung;
-
-                // Ẩn danh sách chọn sinh viên (vì chỉ xem được chính mình)
-                if (dgvSinhVien != null) dgvSinhVien.Visible = false;
-
-                // Ẩn các chức năng đóng tiền (nếu chỉ cho phép xem)
-                if (btnXacNhanDong != null) btnXacNhanDong.Visible = true;
-                if (txbSoTienDong != null) txbSoTienDong.Visible = true;
-
-                lblTenSV.Text = "HỌC PHÍ CỦA BẠN";
-
-                // Load luôn học phí lên giao diện
-                LoadHocPhi(currentMaSV);
-            }
-            // TRƯỜNG HỢP: ADMIN / GIÁO VỤ
-            else
-            {
-                // Hiện danh sách để chọn
-                if (dgvSinhVien != null) dgvSinhVien.Visible = true;
-                if (btnXacNhanDong != null) btnXacNhanDong.Visible = true;
-                if (txbSoTienDong != null) txbSoTienDong.Visible = true;
-
-                lblTenSV.Text = "Vui lòng chọn sinh viên...";
-
-                // Load danh sách tất cả sinh viên
-                LoadDSSinhVien();
-            }
+            lbl.Parent = parent;
+            lbl.Location = new Point(x, 20);
+            lbl.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            lbl.ForeColor = color;
         }
 
-        void LoadDSSinhVien()
+        // --- HÀM LOAD DỮ LIỆU ---
+        private void LoadThongTinHocPhi()
         {
-            string quyen = loginAccount.Quyen.Trim().ToLower();
+            // Load danh sách môn học đã đăng ký
+            dgvSinhVien.DataSource = TuitionDAO.Instance.GetListDangKy(currentMaHV);
 
-            // Setup tên cột hiển thị (làm trước để tránh lỗi)
-            if (dgvSinhVien.Columns["MaSV"] != null) dgvSinhVien.Columns["MaSV"].HeaderText = "Mã SV";
-            if (dgvSinhVien.Columns["HoTen"] != null) dgvSinhVien.Columns["HoTen"].HeaderText = "Họ Tên";
-
-            // Ẩn các cột thừa
-            string[] cotAn = { "NgaySinh", "GioiTinh", "DiaChi", "SoDienThoai", "Email", "MaLop", "HinhAnh", "TrangThai" };
-            foreach (string cot in cotAn)
+            // Đổi tên cột hiển thị
+            if (dgvSinhVien.Columns["TenKyNang"] != null) dgvSinhVien.Columns["TenKyNang"].HeaderText = "Kỹ Năng";
+            if (dgvSinhVien.Columns["TenLop"] != null) dgvSinhVien.Columns["TenLop"].HeaderText = "Lớp Học";
+            if (dgvSinhVien.Columns["HocPhiLop"] != null)
             {
-                if (dgvSinhVien.Columns[cot] != null) dgvSinhVien.Columns[cot].Visible = false;
+                dgvSinhVien.Columns["HocPhiLop"].HeaderText = "Học Phí";
+                dgvSinhVien.Columns["HocPhiLop"].DefaultCellStyle.Format = "N0";
             }
+            if (dgvSinhVien.Columns["NgayDangKy"] != null) dgvSinhVien.Columns["NgayDangKy"].Visible = false;
 
-            // --- PHÂN QUYỀN HIỂN THỊ DANH SÁCH ---
-            if (quyen == "sinhvien" || quyen == "sv")
-            {
-                // [THAY ĐỔI Ở ĐÂY]
-                // 1. Vẫn cho hiện danh sách
-                dgvSinhVien.Visible = true;
+            // Tính toán tiền
+            decimal tong = TuitionDAO.Instance.GetTongNo(currentMaHV);
+            decimal daDong = TuitionDAO.Instance.GetDaDong(currentMaHV);
+            decimal conNo = tong - daDong;
 
-                // 2. Chỉ tải đúng thông tin của sinh viên đang đăng nhập vào danh sách
-                // Hàm SearchSinhVienByID trả về List chứa 1 người -> Rất tiện để dùng luôn
-                dgvSinhVien.DataSource = SinhVienDAO.Instance.SearchSinhVienByID(loginAccount.MaNguoiDung);
+            lblTongHP.Text = $"TỔNG HỌC PHÍ: {tong:N0} đ";
+            lblDaDong.Text = $"ĐÃ ĐÓNG: {daDong:N0} đ";
+            lblConNo.Text = $"CÒN NỢ: {conNo:N0} đ";
+            lblConNo.ForeColor = conNo > 0 ? Color.Red : Color.Green;
 
-                // 3. (Tùy chọn) Mặc định chọn luôn dòng đầu tiên cho đẹp
-                if (dgvSinhVien.Rows.Count > 0)
-                {
-                    dgvSinhVien.Rows[0].Selected = true;
-                }
-            }
-            else
-            {
-                // Admin/Giáo vụ: Hiện tất cả
-                dgvSinhVien.Visible = true;
-                dgvSinhVien.DataSource = SinhVienDAO.Instance.GetListSinhVien();
-            }
+            lblTenSV.Text = "Mã HV: " + currentMaHV;
         }
 
-        // --- HÀM 1: SỰ KIỆN CLICK VÀO DANH SÁCH SINH VIÊN (BỊ THIẾU TRƯỚC ĐÓ) ---
-        private void dgvSinhVien_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            // Chỉ chạy nếu là Admin (vì Sinh viên đã ẩn bảng này rồi)
-            if (e.RowIndex >= 0)
-            {
-                try
-                {
-                    // Lấy đối tượng SinhVien từ dòng được chọn
-                    // Lưu ý: Đôi khi DataBoundItem có thể null nếu click vào dòng trống
-                    if (dgvSinhVien.Rows[e.RowIndex].Cells["MaSV"].Value != null)
-                    {
-                        currentMaSV = dgvSinhVien.Rows[e.RowIndex].Cells["MaSV"].Value.ToString();
-                        string tenSV = dgvSinhVien.Rows[e.RowIndex].Cells["HoTen"].Value.ToString();
+        // --- CÁC SỰ KIỆN (Bắt buộc phải có để khớp với Designer) ---
 
-                        lblTenSV.Text = "Học phí của: " + tenSV;
-                        LoadHocPhi(currentMaSV);
-                    }
-                }
-                catch
-                {
-                    // Bỏ qua lỗi nếu click nhầm 
-                }
-            }
-        }
-
-        // --- HÀM 2: LOAD THÔNG TIN HỌC PHÍ LÊN LABEL ---
-        void LoadHocPhi(string maSV)
-        {
-            if (string.IsNullOrEmpty(maSV)) return;
-
-            DataTable data = HocPhiDAO.Instance.GetHocPhi(maSV);
-            if (data.Rows.Count > 0)
-            {
-                DataRow row = data.Rows[0];
-
-                decimal TongTien = row["TongTien"] != DBNull.Value ? Convert.ToDecimal(row["TongTien"]) : 0;
-                decimal daDong = row["DaDong"] != DBNull.Value ? Convert.ToDecimal(row["DaDong"]) : 0;
-                decimal conNo = row["ConNo"] != DBNull.Value ? Convert.ToDecimal(row["ConNo"]) : 0;
-
-                lblTongHP.Text = "Tổng Học Phí: " + TongTien.ToString("N0") + " VNĐ";
-                lblDaDong.Text = "Đã Đóng: " + daDong.ToString("N0") + " VNĐ";
-                lblConNo.Text = "Còn Nợ: " + conNo.ToString("N0") + " VNĐ";
-
-                if (txbSoTienDong != null) txbSoTienDong.Text = "";
-            }
-            else
-            {
-                // Nếu chưa có dữ liệu học phí
-                lblTongHP.Text = "Tổng Học Phí: 0 VNĐ";
-                lblDaDong.Text = "Đã Đóng: 0 VNĐ";
-                lblConNo.Text = "Còn Nợ: 0 VNĐ";
-            }
-        }
-
-        // --- HÀM 3: SỰ KIỆN NÚT ĐÓNG TIỀN (BỊ THIẾU TRƯỚC ĐÓ) ---
+        // 1. Sự kiện Click nút Thanh toán
         private void btnXacNhanDong_Click(object sender, EventArgs e)
         {
-            if (currentMaSV == null)
+            if (decimal.TryParse(txbSoTienDong.Text, out decimal soTien))
             {
-                MessageBox.Show("Vui lòng chọn sinh viên trước!");
-                return;
-            }
+                if (soTien <= 0) { MessageBox.Show("Số tiền phải lớn hơn 0"); return; }
 
-            if (double.TryParse(txbSoTienDong.Text, out double soTien))
-            {
-                if (HocPhiDAO.Instance.DongHocPhi(currentMaSV, soTien))
+                if (TuitionDAO.Instance.InsertThanhToan(currentMaHV, soTien, "Đóng tiền tại quầy"))
                 {
-                    MessageBox.Show("Đóng học phí thành công!");
-                    LoadHocPhi(currentMaSV); // Load lại để cập nhật số dư
+                    MessageBox.Show("Thanh toán thành công!");
+                    LoadThongTinHocPhi();
+                    txbSoTienDong.Clear();
                 }
-                else
-                {
-                    MessageBox.Show("Có lỗi xảy ra khi cập nhật CSDL!");
-                }
+                else MessageBox.Show("Lỗi hệ thống!");
             }
-            else
-            {
-                MessageBox.Show("Vui lòng nhập số tiền hợp lệ!");
-            }
+            else MessageBox.Show("Vui lòng nhập số tiền hợp lệ!");
+        }
+
+        // 2. Sự kiện Load Form (Designer gọi hàm này nên bắt buộc phải có)
+        private void FrmHocPhi_Load_1(object sender, EventArgs e)
+        {
+            // Để trống cũng được vì đã load ở Constructor
         }
     }
 }

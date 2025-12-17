@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Windows.Forms;
-using QuanLySinhVien.DAO;
-using QuanLySinhVien.DTO;
+using QuanLyTrungTam.DAO;
+using QuanLyTrungTam.DTO;
 
-namespace QuanLySinhVien
+namespace QuanLyTrungTam
 {
     public partial class fChangePassword : Form
     {

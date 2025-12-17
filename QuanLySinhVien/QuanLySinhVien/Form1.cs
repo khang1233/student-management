@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Windows.Forms;
-using QuanLySinhVien.DAO;
-using QuanLySinhVien.DTO; // Bắt buộc để dùng Account
-using QuanLySinhVien.Utilities; // Bắt buộc để dùng AppSession
+using QuanLyTrungTam.DAO;
+using QuanLyTrungTam.DTO; // Bắt buộc để dùng Account
+using QuanLyTrungTam.Utilities; // Bắt buộc để dùng AppSession
 
-namespace QuanLySinhVien
+namespace QuanLyTrungTam
 {
     public partial class Form1 : Form
     {
@@ -87,7 +87,45 @@ namespace QuanLySinhVien
                 MessageBox.Show("Lỗi hệ thống: " + ex.Message);
             }
         }
+        // Trong Form1.cs
+        private async void btnGoogleLogin_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // 1. Lấy email từ Google (Code GoogleHelper của bạn đã ổn)
+                string email = await GoogleHelper.LoginGoogleAsync();
 
+                if (string.IsNullOrEmpty(email))
+                {
+                    MessageBox.Show("Đăng nhập Google thất bại hoặc bị hủy.");
+                    return;
+                }
+
+                // 2. Xử lý Logic Database (Login hoặc Register)
+                if (AccountDAO.Instance.LoginGoogle(email))
+                {
+                    // 3. Lấy thông tin account sau khi xử lý xong
+                    Account acc = AccountDAO.Instance.GetAccountByUserName(email);
+
+                    // 4. Lưu Session
+                    QuanLyTrungTam.Utilities.AppSession.CurrentUser = acc;
+
+                    // 5. Chuyển Form
+                    fMain f = new fMain(acc);
+                    this.Hide();
+                    f.ShowDialog();
+                    this.Show();
+                }
+                else
+                {
+                    MessageBox.Show("Lỗi hệ thống khi tạo tài khoản Google.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi: " + ex.Message);
+            }
+        }
         private void groupBoxRole_Enter(object sender, EventArgs e)
         {
 

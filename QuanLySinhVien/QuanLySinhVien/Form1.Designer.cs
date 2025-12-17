@@ -1,4 +1,4 @@
-﻿namespace QuanLySinhVien
+﻿namespace QuanLyTrungTam
 {
     partial class Form1
     {

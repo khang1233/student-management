@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace QuanLySinhVien.DTO
+namespace QuanLyTrungTam.DTO
 {
     public class Account
     {
